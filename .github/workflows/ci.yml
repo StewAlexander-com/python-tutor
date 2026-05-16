@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests (pytest)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: |
+            backend/requirements.txt
+            backend/requirements-dev.txt
+
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+
+      - name: Run pytest
+        working-directory: backend
+        run: pytest -q
+
+  frontend:
+    name: Frontend JS syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Syntax-check frontend JS
+        run: |
+          set -e
+          for f in frontend/*.js; do
+            echo "node --check $f"
+            node --check "$f"
+          done
+
+      - name: Validate JSON content
+        run: |
+          set -e
+          python3 -c "
+          import json, pathlib, sys
+          errors = 0
+          for p in list(pathlib.Path('frontend').rglob('*.json')) + list(pathlib.Path('curriculum').rglob('*.json')):
+              try:
+                  json.loads(p.read_text())
+                  print(f'ok  {p}')
+              except Exception as e:
+                  print(f'ERR {p}: {e}', file=sys.stderr)
+                  errors += 1
+          sys.exit(1 if errors else 0)
+          "
+
+  scripts:
+    name: Shell script lint + smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: shellcheck install/run scripts
+        run: |
+          if [ -f install.sh ] || [ -f run.sh ]; then
+            sudo apt-get update -y
+            sudo apt-get install -y shellcheck
+            for f in install.sh run.sh; do
+              [ -f "$f" ] && shellcheck -x "$f"
+            done
+          else
+            echo "no install.sh / run.sh yet; skipping"
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Smoke-test install.sh (skip model pull, skip Ollama)
+        env:
+          TUTOR_SKIP_OLLAMA: "1"
+          TUTOR_SKIP_MODEL_PULL: "1"
+          TUTOR_NONINTERACTIVE: "1"
+        run: |
+          if [ -f install.sh ]; then
+            chmod +x install.sh run.sh scripts/smoke_run.sh
+            ./install.sh
+            test -d backend/.venv
+            backend/.venv/bin/python -c "import fastapi, uvicorn, httpx, pydantic"
+          else
+            echo "install.sh missing; skipping smoke test"
+          fi
+
+      - name: Smoke-test run.sh (no Ollama; check /api/health and /)
+        env:
+          TUTOR_SKIP_OLLAMA: "1"
+          TUTOR_PORT: "8801"
+        run: |
+          if [ -f scripts/smoke_run.sh ]; then
+            chmod +x scripts/smoke_run.sh
+            ./scripts/smoke_run.sh
+          else
+            echo "scripts/smoke_run.sh missing; skipping run.sh smoke"
+          fi

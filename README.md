@@ -73,7 +73,61 @@ flowchart TD
     └── 0001-offline-first-local-llm.md
 ```
 
-## Running the Frontend
+## Quick start (idiot-proof)
+
+Two commands. macOS and Linux. Python 3.10+. Ollama is optional for a
+first look at the UI; required for chat replies and code evaluation.
+
+```bash
+gh repo clone StewAlexander-com/python-tutor
+cd python-tutor
+./install.sh        # creates venv, installs deps, pulls model if Ollama is up
+./run.sh            # serves UI + API on http://localhost:8001/
+```
+
+Then open <http://localhost:8001/> in your browser. You'll see the
+lesson list, the inline code lab (Run / Evaluate), and the floating
+"Ask tutor" chat panel.
+
+### Expected behaviour when Ollama is not running
+
+- The web UI loads normally — you can read lessons and run code locally
+  (`POST /api/run` does not need the LLM).
+- `/api/health` reports `status: "degraded"` and `ollama_reachable: false`.
+- `Evaluate` and the chat panel return a clear 503 — they don't hang.
+- As soon as you start `ollama serve`, everything works without a restart.
+
+### What if Ollama isn't installed?
+
+`install.sh` and `run.sh` **never** install system binaries on your
+behalf. If Ollama is missing, they print exactly what to run:
+
+```bash
+# macOS
+brew install ollama && ollama serve &
+
+# Linux
+curl -fsSL https://ollama.com/install.sh | sh && ollama serve &
+```
+
+Then `./install.sh` again to pull `gemma3:4b`.
+
+### Troubleshooting
+
+| Symptom                                | Fix                                                                                         |
+| -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `Python 3.10+ is required`             | Install Python (see [`docs/install-runtime-workflow.md`](docs/install-runtime-workflow.md)) |
+| Chat returns `ollama_reachable: false` | Run `ollama serve` in another terminal                                                      |
+| Port 8001 already in use               | `TUTOR_PORT=9001 ./run.sh`                                                                  |
+| Model missing in chat replies          | `ollama pull gemma3:4b` (or set `TUTOR_MODEL` to your model)                                |
+| Service worker shows stale UI          | Hard-refresh the browser (Cmd/Ctrl-Shift-R)                                                 |
+| `install.sh` failed mid-`pip install`  | Re-run it — it's idempotent and reuses the venv                                             |
+
+For the design rationale behind the two-script flow (and the five flows
+we evaluated), see
+[`docs/install-runtime-workflow.md`](docs/install-runtime-workflow.md).
+
+## Running the Frontend (manual)
 
 A static, dependency-free SPA lives in [`frontend/`](frontend/). It was adapted from the [Python Power User](https://github.com/StewAlexander-com/Python-Power-User) project (MIT) and provides the learner-facing UI for this framework.
 
