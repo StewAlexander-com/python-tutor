@@ -77,8 +77,7 @@ start_ollama_now() {
   # shellcheck disable=SC2069
   nohup ollama serve >/tmp/ollama-serve.log 2>&1 &
   local pid=$!
-  local tries
-  for tries in $(seq 1 20); do
+  for _ in $(seq 1 20); do
     if ollama_daemon_up; then
       ok "ollama serve is up (pid $pid; log: /tmp/ollama-serve.log)"
       return 0
