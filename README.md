@@ -55,9 +55,30 @@ flowchart TD
 │   └── python-foundations.md
 ├── prompts/
 │   └── tutor-system-prompt.md
+├── frontend/                 # static PWA frontend (see frontend/README.md)
+│   ├── index.html
+│   ├── app.js
+│   ├── style.css
+│   ├── base.css
+│   ├── manifest.json
+│   ├── sw.js
+│   ├── content/sections.json
+│   └── assets/
 └── adr/
     └── 0001-offline-first-local-llm.md
 ```
+
+## Running the Frontend
+
+A static, dependency-free SPA lives in [`frontend/`](frontend/). It was adapted from the [Python Power User](https://github.com/StewAlexander-com/Python-Power-User) project (MIT) and provides the learner-facing UI for this framework.
+
+```bash
+cd frontend
+python3 -m http.server 8000
+# then open http://localhost:8000/
+```
+
+Any static HTTP server works. The app must be served over `http://` (not opened as a `file://` URL) so `fetch()` and the service worker can load `content/sections.json`. See [`frontend/README.md`](frontend/README.md) for routes, layout, and how to wire it up to the local LLM and sandbox backend.
 
 ## Core Components
 
@@ -171,3 +192,4 @@ Read:
 - [Roadmap](docs/roadmap.md)
 - [Python Foundations Curriculum](curriculum/python-foundations.md)
 - [Tutor System Prompt](prompts/tutor-system-prompt.md)
+- [Frontend](frontend/README.md)

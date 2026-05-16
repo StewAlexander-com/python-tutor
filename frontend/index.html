@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#0f0f10" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PyTutor" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="application-name" content="Offline Python Tutor" />
+<meta name="msapplication-TileColor" content="#0c0c0d" />
+<meta name="msapplication-TileImage" content="assets/icons/icon-144x144.png" />
+
+<title>Offline Python Tutor — a local-first learning frontend</title>
+<meta name="description" content="Browser frontend for the Offline Python Tutor framework. 46 sections of Python content, two learning paths, fully offline as a PWA, designed to pair with a local LLM tutor backend." />
+<meta name="keywords" content="python, python tutor, offline python, local llm, learn python, python pwa, python reference, gemma, ollama" />
+<meta name="author" content="Offline Python Tutor contributors" />
+<link rel="canonical" href="./" />
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Offline Python Tutor — local-first learning frontend" />
+<meta property="og:description" content="Browser frontend for the Offline Python Tutor framework. 46 sections, two learning paths, fully offline PWA, designed to pair with a local LLM." />
+<meta property="og:image" content="assets/screenshots/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:site_name" content="Offline Python Tutor" />
+<meta property="og:locale" content="en_US" />
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Offline Python Tutor — local-first learning frontend" />
+<meta name="twitter:description" content="46 sections. Two learning paths. Local LLM-friendly. A Python tutor frontend that runs offline." />
+<meta name="twitter:image" content="assets/screenshots/og-image.png" />
+<meta name="twitter:image:alt" content="Offline Python Tutor — a dark-themed local learning interface" />
+
+<!-- Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "Offline Python Tutor",
+  "description": "Browser frontend for the Offline Python Tutor framework. 46 Python sections with two learning paths, runs fully offline as a PWA.",
+  "applicationCategory": "EducationalApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "isAccessibleForFree": true,
+  "inLanguage": "en",
+  "screenshot": "assets/screenshots/web-home.png",
+  "featureList": [
+    "46 Python teaching sections",
+    "Two learning paths: beginner and quick reference",
+    "Local-first, works offline as a PWA",
+    "Pairs with a local LLM tutor backend",
+    "Zero external dependencies in the browser"
+  ]
+}
+</script>
+
+<!-- Favicons & PWA -->
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="icon" href="assets/icons/icon-96x96.png" sizes="96x96" type="image/png" />
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+<link rel="manifest" href="manifest.json" />
+
+<!-- Fonts: Satoshi (Fontshare) + JetBrains Mono (Google) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://api.fontshare.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="base.css?v=20260416c" />
+<link rel="stylesheet" href="style.css?v=20260416b" />
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar" id="topbar">
+  <a class="brand" href="#/" aria-label="Offline Python Tutor home">
+    <svg class="brand__mark" viewBox="0 0 64 64" aria-hidden="true">
+      <path d="M18 22 L26 32 L18 42" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="31" y="39" width="14" height="3.5" rx="1" fill="currentColor"/>
+    </svg>
+    <span class="brand__name">Python<span class="brand__dot">.</span>Tutor</span>
+  </a>
+  <nav class="topbar__nav" aria-label="Primary">
+    <a href="#/beginner" class="topbar__link" data-path="beginner">Beginner path</a>
+    <a href="#/power" class="topbar__link" data-path="power">Quick reference</a>
+    <a href="https://github.com/StewAlexander-com/python-tutor" target="_blank" rel="noopener" class="topbar__link topbar__link--ghost">
+      GitHub <span aria-hidden="true">↗</span>
+    </a>
+  </nav>
+  <button class="topbar__menu" id="menuBtn" aria-label="Open section list" aria-expanded="false" aria-controls="drawer">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- ============ MOBILE / DRAWER SECTION LIST ============ -->
+<div class="drawer-backdrop" id="drawerBackdrop" hidden></div>
+<aside class="drawer" id="drawer" aria-label="Section list" hidden>
+  <div class="drawer__head">
+    <h2>Sections</h2>
+    <button class="drawer__close" id="drawerClose" aria-label="Close section list">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <label class="drawer__search">
+    <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <input type="search" id="drawerSearch" placeholder="Search 46 sections…" autocomplete="off" />
+  </label>
+  <nav class="drawer__list" id="drawerList" aria-label="All sections"></nav>
+</aside>
+
+<!-- ============ MAIN ============ -->
+<main id="main" class="main">
+
+  <!-- HERO / HOME ROUTE -->
+  <section class="hero" id="view-home" data-view="home">
+    <div class="hero__inner">
+      <p class="eyebrow">An offline Python tutor — local-first</p>
+      <h1 class="hero__title">
+        Learn Python, <span class="amber">offline,</span><br />
+        with a local tutor.
+      </h1>
+      <p class="hero__lede">
+        46 sections. Designed to pair with a local LLM and a sandboxed runtime. Pick a path and start where you are.
+      </p>
+
+      <div class="paths">
+        <a href="#/beginner" class="path path--beginner">
+          <div class="path__num">01</div>
+          <div class="path__body">
+            <h3 class="path__title">I'm new to Python</h3>
+            <p class="path__desc">
+              Start at variables. Walk through the language in the order your brain wants. Each section explains the <em>why</em> before the syntax.
+            </p>
+            <span class="path__cta">Begin the beginner path →</span>
+          </div>
+        </a>
+
+        <a href="#/power" class="path path--power">
+          <div class="path__num">02</div>
+          <div class="path__body">
+            <h3 class="path__title">I need a quick reference</h3>
+            <p class="path__desc">
+              Every section as a TL;DR: core idea, copy-ready patterns, speed-run challenges, and the root cause of <em>why the feature exists</em>.
+            </p>
+            <span class="path__cta">Open the quick reference →</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="hero__meta">
+        <div class="meta">
+          <div class="meta__k">46</div>
+          <div class="meta__v">sections, from variables to one-liners</div>
+        </div>
+        <div class="meta">
+          <div class="meta__k">2</div>
+          <div class="meta__v">reading modes per section</div>
+        </div>
+        <div class="meta">
+          <div class="meta__k">0</div>
+          <div class="meta__v">cloud calls — runs fully offline</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION BROWSER (beginner or power) -->
+  <section class="browser" id="view-browser" data-view="browser" hidden>
+    <div class="browser__head">
+      <p class="eyebrow" id="browserEyebrow">Beginner path</p>
+      <h2 class="browser__title" id="browserTitle">The 46 sections</h2>
+      <p class="browser__lede" id="browserLede">
+        Each card shows the core goal. Tap one to read.
+      </p>
+      <div class="browser__tools">
+        <label class="search">
+          <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <input type="search" id="browserSearch" placeholder="Filter sections…" autocomplete="off" />
+        </label>
+        <div class="toggle" role="tablist" aria-label="Reading mode">
+          <button class="toggle__btn" role="tab" data-mode="beginner" aria-selected="true">Beginner</button>
+          <button class="toggle__btn" role="tab" data-mode="power" aria-selected="false">Power user</button>
+        </div>
+      </div>
+    </div>
+    <div class="browser__groups" id="browserGroups" aria-live="polite"></div>
+  </section>
+
+  <!-- SECTION VIEW -->
+  <article class="section" id="view-section" data-view="section" hidden>
+    <header class="section__head">
+      <div class="section__crumbs">
+        <a href="#/" class="crumb">Home</a>
+        <span class="crumb__sep">/</span>
+        <a href="#/beginner" class="crumb" id="crumbPath">Beginner</a>
+        <span class="crumb__sep">/</span>
+        <span class="crumb__cur" id="crumbTitle">Section</span>
+      </div>
+      <p class="section__num" id="secNum">Section 01</p>
+      <h1 class="section__title" id="secTitle">Title</h1>
+      <p class="section__why" id="secWhy">Why this matters…</p>
+
+      <div class="tabs" role="tablist" aria-label="Reading mode">
+        <button class="tabs__btn" role="tab" data-tab="teaching" aria-selected="true">Teaching</button>
+        <button class="tabs__btn" role="tab" data-tab="reference" aria-selected="false">Quick reference</button>
+      </div>
+    </header>
+
+    <div class="section__body" id="secBody">
+      <!-- rendered by app.js -->
+    </div>
+
+    <nav class="section__nav" aria-label="Section navigation">
+      <a href="#" class="secnav secnav--prev" id="secPrev">
+        <span class="secnav__label">Previous</span>
+        <span class="secnav__title">—</span>
+      </a>
+      <a href="#" class="secnav secnav--next" id="secNext">
+        <span class="secnav__label">Next</span>
+        <span class="secnav__title">—</span>
+      </a>
+    </nav>
+  </article>
+
+</main>
+
+<footer class="footer">
+  <div class="footer__inner">
+    <p class="footer__line">
+      <strong>Offline Python Tutor</strong> — a local-first learning frontend.
+    </p>
+    <p class="footer__line footer__muted">
+      Frontend content adapted from the
+      <a href="https://github.com/StewAlexander-com/Python-Power-User" target="_blank" rel="noopener">Python Power User</a>
+      project. Tutor framework on
+      <a href="https://github.com/StewAlexander-com/python-tutor" target="_blank" rel="noopener">GitHub ↗</a>.
+    </p>
+  </div>
+</footer>
+
+<!-- Hidden noscript fallback -->
+<noscript>
+  <div class="noscript">
+    This site reads <code>content/sections.json</code> with JavaScript to render 46 Python sections.
+    Enable JavaScript, or browse the raw JSON directly.
+  </div>
+</noscript>
+
+<script src="app.js?v=20260416" defer></script>
+
+<!-- Service Worker Registration + Cache Bust -->
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => {
+        // Check for updates every 30 min
+        setInterval(() => reg.update(), 30 * 60 * 1000);
+        // Force update on activation
+        reg.addEventListener('updatefound', () => {
+          const newSW = reg.installing;
+          newSW.addEventListener('statechange', () => {
+            if (newSW.state === 'activated') {
+              // New SW active — reload only if user isn't mid-read
+              if (document.hidden) location.reload();
+            }
+          });
+        });
+      })
+      .catch(err => console.warn('SW registration failed:', err));
+  });
+}
+</script>
+</body>
+</html>
