@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Offline Python Tutor</title>
+<script>
+  // GitHub Pages SPA redirect: preserves the path as a hash route
+  // e.g. /python-tutor/s/variables -> /python-tutor/#/s/variables
+  var path = window.location.pathname;
+  var repo = '/python-tutor';
+  if (path.startsWith(repo)) {
+    var route = path.slice(repo.length);
+    if (route && route !== '/') {
+      window.location.replace(repo + '/#' + route);
+    } else {
+      window.location.replace(repo + '/');
+    }
+  } else {
+    window.location.replace(repo + '/');
+  }
+</script>
+</head>
+<body>
+  <p>Redirecting&hellip;</p>
+</body>
+</html>
