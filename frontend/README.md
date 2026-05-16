@@ -87,10 +87,30 @@ The chat module looks up the backend URL in this order:
 chat requests always hit the live FastAPI server even when the rest of the
 shell is served from cache.
 
+### Inline code lab — read · run · evaluate
+
+Each section view also mounts an inline **code lab** ([`tutor-codelab.js`](tutor-codelab.js))
+beneath the lesson body. It seeds an editor with the section's example
+snippet and adds two actions:
+
+- **Run** — POSTs `{code, timeout?}` to [`/api/run`](../backend/README.md#post-apirun)
+  and shows stdout, stderr, exit code, duration, and a timeout flag.
+- **Evaluate** — POSTs `{code, section, question?, run_output?}` to
+  [`/api/evaluate`](../backend/README.md#post-apievaluate). The backend
+  builds an evidence packet (the code plus the *actual* runtime output)
+  and asks the local LLM for a hint-first assessment with a concrete
+  next step.
+
+The lab reuses chat-panel design tokens (amber accent, dark surfaces,
+mono labels). A small "prototype safety · subprocess + timeout" pill is
+always visible next to **Run** so the safety surface is honest.
+See [`docs/ux-workflow.md`](../docs/ux-workflow.md) for the candidate
+workflows considered and the chosen blend.
+
 ### Still to come
 
-1. A code-editor pane on the section view, posting student code to a local sandbox endpoint.
-2. Streaming responses (the backend already supports `stream: true` NDJSON).
+1. Streaming responses for `/api/evaluate` (the chat endpoint already supports `stream: true` NDJSON).
+2. Per-section expected-output tests so the lab can mark mastery.
 3. A learner-state read/write layer talking to a small local store.
 
 Keeping the frontend static means it can be hosted next to the backend as a `file://`-equivalent app, embedded in a desktop shell, or served by the tutor process itself.

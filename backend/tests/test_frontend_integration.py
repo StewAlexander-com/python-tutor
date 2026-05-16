@@ -50,6 +50,31 @@ def test_chat_assets_exist() -> None:
     assert (FRONTEND_DIR / "tutor-chat.css").is_file()
 
 
+def test_codelab_assets_exist() -> None:
+    assert (FRONTEND_DIR / "tutor-codelab.js").is_file()
+    assert (FRONTEND_DIR / "tutor-codelab.css").is_file()
+
+
+def test_codelab_js_calls_run_and_evaluate() -> None:
+    js = (FRONTEND_DIR / "tutor-codelab.js").read_text(encoding="utf-8")
+    assert "/api/run" in js
+    assert "/api/evaluate" in js
+    assert "window.TutorCodeLab" in js
+    assert "mountInto" in js
+
+
+def test_index_html_references_codelab_assets() -> None:
+    index = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
+    assert "tutor-codelab.css" in index
+    assert "tutor-codelab.js" in index
+
+
+def test_service_worker_precaches_codelab_assets() -> None:
+    sw = (FRONTEND_DIR / "sw.js").read_text(encoding="utf-8")
+    assert "tutor-codelab.js" in sw
+    assert "tutor-codelab.css" in sw
+
+
 def test_index_html_references_chat_assets() -> None:
     index = (FRONTEND_DIR / "index.html").read_text(encoding="utf-8")
     assert 'href="tutor-chat.css' in index

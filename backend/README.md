@@ -4,9 +4,12 @@ A small, local-first FastAPI service that proxies an [Ollama](https://ollama.com
 LLM (default: `gemma3:4b`) and exposes a tutor-shaped HTTP API for the
 [`frontend/`](../frontend/) PWA and other clients.
 
-The backend is intentionally minimal. It does not yet execute student code; the
-sandboxed runner described in [`docs/safety-and-sandboxing.md`](../docs/safety-and-sandboxing.md)
-is a separate milestone.
+The backend now also exposes a *prototype-grade* Python runner
+(`POST /api/run`) and an LLM evaluator (`POST /api/evaluate`) used by the
+frontend's inline code lab. The runner uses subprocess isolation with a
+hard wall-clock timeout and a restricted env — see
+[`docs/safety-and-sandboxing.md`](../docs/safety-and-sandboxing.md) for the
+controls a real deployment would still need to add.
 
 ## Layout
 
@@ -16,6 +19,7 @@ backend/
 │   ├── config.py         # env-driven Settings + tutor system prompt loader
 │   ├── main.py           # FastAPI app factory and routes
 │   ├── ollama_client.py  # async client for /api/tags and /api/chat
+│   ├── runner.py         # prototype Python subprocess runner (timeout + restricted env)
 │   └── schemas.py        # pydantic request/response models
 ├── tests/
 │   └── test_api.py       # mocked Ollama tests via respx
@@ -75,6 +79,9 @@ before launching uvicorn — the static frontend will be mounted at `/`.
 | `TUTOR_SERVE_FRONTEND` | `0` | Set to `1` to mount `frontend/` at `/`. |
 | `TUTOR_FRONTEND_DIR` | `../frontend` | Override the directory used when serving the frontend. |
 | `TUTOR_SYSTEM_PROMPT_PATH` | `../prompts/tutor-system-prompt.md` | Markdown file whose first fenced block is used as the default system prompt. |
+| `TUTOR_RUN_TIMEOUT` | `5` | Wall-clock seconds for `/api/run` and `/api/evaluate` code execution. Clamped to 0.5–30s. |
+| `TUTOR_RUN_MAX_CODE_BYTES` | `50000` | Max UTF-8 bytes accepted for a single submission. Clamped to 1 000–200 000. |
+| `TUTOR_RUN_MAX_OUTPUT_BYTES` | `32000` | Each of stdout/stderr is truncated past this. Clamped to 1 000–200 000. |
 
 ## Endpoints
 
@@ -145,6 +152,81 @@ curl -N http://localhost:8001/api/chat \
 
 Each streamed line is a JSON object forwarded from Ollama's `/api/chat` stream.
 
+### `POST /api/run`
+
+Executes student code in an isolated Python subprocess. **Prototype safety
+only** — subprocess + hard timeout + restricted env (`python -I`, empty env
+except `LC_ALL`/`PYTHONIOENCODING`, temp cwd). This is *not* a real sandbox.
+
+Request:
+
+```jsonc
+{
+  "code": "print(2 + 2)\n",
+  "stdin": "",            // optional
+  "timeout": 3.0          // optional, default 5s, clamped 0.5–30s
+}
+```
+
+Response:
+
+```json
+{
+  "stdout": "4\n",
+  "stderr": "",
+  "exit_code": 0,
+  "duration_ms": 16,
+  "timed_out": false,
+  "truncated": false
+}
+```
+
+Errors:
+
+- `400` if `code` exceeds `TUTOR_RUN_MAX_CODE_BYTES`.
+- `422` for malformed bodies.
+- Student-side failures (syntax errors, non-zero exits, timeouts) are
+  **not** errors — they come back in the normal response with
+  `exit_code != 0` and/or `timed_out: true`.
+
+### `POST /api/evaluate`
+
+Wraps a `/api/run` + LLM call into one request. Builds a compact evidence
+packet (code + actual runtime output + optional section context and
+learner question) and asks the tutor model for a hint-first assessment.
+
+Request:
+
+```jsonc
+{
+  "code": "for n in [1,2,3]: print(n)\n",
+  "section": "10 — Loops",            // optional
+  "question": "Is this idiomatic?",   // optional
+  "run_output": {                     // optional — if present, /api/run is skipped
+    "stdout": "...", "stderr": "", "exit_code": 0,
+    "duration_ms": 5, "timed_out": false, "truncated": false
+  },
+  "model": "gemma3:4b",               // optional
+  "temperature": 0.2                  // optional
+}
+```
+
+Response:
+
+```json
+{
+  "assessment": "passed",
+  "feedback": "Your loop iterates correctly and prints each item...",
+  "next_step": "Try the same with a list comprehension.",
+  "run": { "stdout": "1\n2\n3\n", "stderr": "", "exit_code": 0, "duration_ms": 14, "timed_out": false, "truncated": false },
+  "model": "gemma3:4b"
+}
+```
+
+`assessment` is one of `passed | needs_work | error`. `next_step` is a
+best-effort extraction from the model's reply; it may be `null` if the
+tutor's response did not include a recognisable next-step line.
+
 ## Tests
 
 ```bash
@@ -154,13 +236,14 @@ cd backend
 
 Tests use `respx` to mock the Ollama HTTP API, so they run without a real model
 server. The suite covers health (reachable + degraded), config, default and
-custom system prompt injection, and upstream error handling.
+custom system prompt injection, upstream error handling, the frontend chat
+wiring, and the `/api/run` + `/api/evaluate` endpoints (including the runner
+module's timeout, isolation, and output-truncation behaviour).
 
 ## Roadmap
 
-- Add a `/api/run` endpoint that wraps the sandboxed Python runner described in
-  [`docs/safety-and-sandboxing.md`](../docs/safety-and-sandboxing.md).
-- Add a `/api/tutor/turn` endpoint that orchestrates: run code → collect
-  evidence → call LLM with the structured context template from
-  [`prompts/tutor-system-prompt.md`](../prompts/tutor-system-prompt.md).
+- Tighten `/api/run` isolation: container or microVM, network namespace,
+  CPU/memory limits, seccomp/AppArmor where available.
+- Stream `/api/evaluate` responses (the LLM call already streams; the
+  evidence-packet shape just needs an NDJSON variant).
 - Persist learner state (see roadmap M4).

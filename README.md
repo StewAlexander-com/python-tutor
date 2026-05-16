@@ -164,6 +164,48 @@ The chat module reads (in order): `window.TUTOR_BACKEND_URL` → `<meta
 name="tutor-backend">` → `localStorage["tutor-backend"]` → port heuristic →
 same origin.
 
+## UX Workflow — read · run · evaluate
+
+Every section view now ends with an inline **code lab**: an editor seeded
+with the section's example snippet, a **Run** button that executes the code
+locally, and an **Evaluate** button that sends the code + the actual run
+output to the tutor for evidence-based feedback. The floating chat panel
+stays available for free-form questions.
+
+```mermaid
+flowchart LR
+  Lesson["Lesson view"] --> Lab["Code lab editor"]
+  Lab -- "Run" --> RunApi["/api/run<br/>subprocess + timeout"]
+  RunApi --> Lab
+  Lab -- "Evaluate" --> EvalApi["/api/evaluate<br/>evidence packet → LLM"]
+  EvalApi --> Lab
+  Lab -. "free-form" .-> Chat["Floating chat → /api/chat"]
+```
+
+The five candidate workflows considered, the trade-offs, and the chosen
+blend (lesson-first spine + inline code-lab + evidence-packet evaluation)
+are written up in [`docs/ux-workflow.md`](docs/ux-workflow.md).
+
+### New backend endpoints
+
+- `POST /api/run` — runs the submitted code in an isolated Python subprocess
+  (`python -I`, empty env, temp cwd, hard wall-clock timeout, size-limited
+  output). Returns `{stdout, stderr, exit_code, duration_ms, timed_out,
+  truncated}`. This is **prototype safety only** — subprocess + timeout +
+  restricted env. Not a real sandbox. See
+  [`docs/safety-and-sandboxing.md`](docs/safety-and-sandboxing.md) for the
+  controls a serious deployment would add (containers, seccomp, network
+  namespaces, CPU/memory limits).
+- `POST /api/evaluate` — accepts `{code, section?, question?, run_output?}`,
+  runs the code if `run_output` is missing, builds an evidence packet, and
+  asks the LLM for a hint-first assessment. Returns
+  `{assessment, feedback, next_step, run, model}` where `assessment` is one
+  of `passed | needs_work | error`.
+
+Configurable via env: `TUTOR_RUN_TIMEOUT` (default 5s, clamped 0.5–30s),
+`TUTOR_RUN_MAX_CODE_BYTES` (default 50 000), `TUTOR_RUN_MAX_OUTPUT_BYTES`
+(default 32 000).
+
 ## Core Components
 
 - **Tutor UI**: A local web app, terminal interface, or desktop shell where the student reads lessons, submits code, and receives feedback.
