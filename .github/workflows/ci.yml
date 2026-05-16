@@ -124,3 +124,12 @@ jobs:
           else
             echo "scripts/smoke_run.sh missing; skipping run.sh smoke"
           fi
+
+      - name: Smoke-test install.sh y/N prompts (noninteractive)
+        run: |
+          if [ -f scripts/smoke_prompts.sh ]; then
+            chmod +x scripts/smoke_prompts.sh
+            ./scripts/smoke_prompts.sh
+          else
+            echo "scripts/smoke_prompts.sh missing; skipping prompt smoke"
+          fi
