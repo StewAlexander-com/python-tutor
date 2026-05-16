@@ -1,503 +1,193 @@
-# Offline Python Tutor Framework
+# Python Tutor
 
-An offline-first framework for building a Python tutor powered by a local LLM such as Gemma, with deterministic code execution, test-based assessment, curriculum state, and privacy-preserving learner memory.
+**A private, offline Python tutor that runs entirely on your own machine.**
 
-The central design rule is simple: the LLM teaches, explains, and guides, but the runtime verifies. The tutor should never rely on model confidence alone when it can run code, inspect errors, execute tests, or compare behavior against a rubric.
+Lessons, an interactive code lab, and an AI mentor — powered by a local LLM
+(Gemma via Ollama). No accounts, no cloud, no telemetry. Open a browser, learn
+Python, write code, get feedback. Your code and your questions never leave the
+laptop.
 
-## Goals
+```
+┌─────────────────────────────────────────────────────────┐
+│  Read a lesson  →  Run code in the lab  →  Ask tutor    │
+│                       (all local, all offline)          │
+└─────────────────────────────────────────────────────────┘
+```
 
-- Provide a local Python learning assistant that works without cloud inference.
-- Use a local LLM, such as Gemma through Ollama, llama.cpp, LM Studio, or Transformers.
-- Give hint-first tutoring rather than answer-first completion.
-- Verify student code with a sandboxed Python runner and test harness.
-- Track learner progress locally using a small database or structured files.
-- Support extensible curriculum modules, exercises, rubrics, and prompt policies.
+---
 
-## Non-goals
+## Why it exists
 
-- Replacing a human instructor for all learning contexts.
-- Trusting the LLM as the source of truth for code correctness.
-- Running arbitrary student code without isolation, timeouts, and resource limits.
-- Fine-tuning as a requirement for the MVP.
+| For…                       | It gives you                                                |
+| -------------------------- | ----------------------------------------------------------- |
+| **Self-learners**          | A guided Python curriculum with a chat tutor on demand.     |
+| **Educators**              | A drop-in lab where students run code and get evidence-based hints. |
+| **Privacy-minded teams**   | A tutor that works on an air-gapped laptop — nothing phones home. |
+| **Tinkerers**              | A clean FastAPI + static-PWA stack to remix and extend.     |
 
-## System Overview
+---
+
+## What you get
+
+| Feature                       | What it does                                                                 |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| 🧠 **Local LLM tutor**        | Chat with a model running on your machine (default: `gemma3:4b` via Ollama). |
+| 📓 **Lesson library**         | A PWA you can install, with a Python-foundations curriculum.                 |
+| 🧪 **Inline code lab**        | Edit → **Run** → **Evaluate**. The tutor sees the real output, not a guess.  |
+| ✅ **Graded exercises**        | Visible + hidden test cases, per-assertion pass/fail.                        |
+| 📚 **Official docs links**    | Answers cite `docs.python.org` and friends from a curated allowlist — no hallucinated URLs. |
+| 🛡 **Prototype-grade safety** | Static AST scan, isolated subprocess, timeouts, rlimits, scrubbed env.       |
+| 🔌 **Works offline**          | UI runs without the LLM; only chat/evaluate need Ollama up.                  |
+
+---
+
+## How it works
 
 ```mermaid
-flowchart TD
-    Student[Student] --> UI[Local Tutor UI]
-    UI --> Orchestrator[Tutor Orchestrator]
-    Orchestrator --> Policy[Teaching Policy]
-    Orchestrator --> State[Learner State Store]
-    Orchestrator --> Curriculum[Curriculum Engine]
-    Orchestrator --> LLM[Local Gemma LLM]
-    Orchestrator --> Sandbox[Python Sandbox]
-    Sandbox --> Tests[Test Runner]
-    Tests --> Results[Execution Results]
-    Results --> Orchestrator
-    LLM --> Orchestrator
-    Orchestrator --> Feedback[Hints, Explanations, Next Step]
-    Feedback --> UI
-    UI --> Student
+flowchart LR
+    Student((You)) -->|reads, edits, asks| UI[PWA frontend]
+    UI -->|/api/run| Sandbox[Python sandbox<br/>subprocess + AST scan]
+    UI -->|/api/evaluate| Evidence[Evidence packet<br/>code + output + docs]
+    UI -->|/api/chat| Chat[Chat]
+    Evidence --> LLM[Local LLM<br/>Ollama / Gemma]
+    Chat --> LLM
+    LLM --> UI
+    Sandbox --> UI
 ```
 
-## Repository Map
+The teaching loop:
 
-```text
-.
-├── README.md
-├── docs/
-│   ├── architecture.md
-│   ├── workflow.md
-│   ├── safety-and-sandboxing.md
-│   ├── evaluation.md
-│   └── roadmap.md
-├── curriculum/
-│   └── python-foundations.md
-├── prompts/
-│   └── tutor-system-prompt.md
-├── frontend/                 # static PWA frontend (see frontend/README.md)
-│   ├── index.html
-│   ├── app.js
-│   ├── style.css
-│   ├── base.css
-│   ├── manifest.json
-│   ├── sw.js
-│   ├── content/sections.json
-│   └── assets/
-├── backend/                  # FastAPI tutor API (see backend/README.md)
-│   ├── app/
-│   ├── tests/
-│   ├── requirements.txt
-│   └── requirements-dev.txt
-└── adr/
-    └── 0001-offline-first-local-llm.md
+```mermaid
+flowchart LR
+    A[Read lesson] --> B[Edit code]
+    B --> C[Run]
+    C --> D{Worked?}
+    D -- yes --> E[Reflect / next lesson]
+    D -- no --> F[Evaluate]
+    F --> G[Hint-first feedback<br/>+ docs link]
+    G --> B
 ```
 
-## Quick start (idiot-proof)
+The LLM teaches, explains, and guides. The **runtime** verifies — the tutor
+never claims code works without running it.
 
-Two commands. macOS and Linux. Python 3.10+. Ollama is optional for a
-first look at the UI; required for chat replies and code evaluation.
+---
+
+## Quick start
+
+Two commands. macOS or Linux. Python 3.10+.
 
 ```bash
 gh repo clone StewAlexander-com/python-tutor
 cd python-tutor
-./install.sh        # creates venv, installs deps, then prompts y/N for
-                    # any host-level setup (install Ollama, start daemon,
-                    # pull model, launch app)
-./run.sh            # serves UI + API on http://localhost:8001/
+./install.sh        # sets up venv, then prompts y/N for any host-level step
+./run.sh            # serves UI + API at http://localhost:8001/
 ```
 
-Then open <http://localhost:8001/> in your browser. You'll see the
-lesson list, the inline code lab (Run / Evaluate), and the floating
-"Ask tutor" chat panel.
+Open <http://localhost:8001/> — you'll land on the lesson list with the code lab
+and floating "Ask tutor" panel.
 
-### Opt-in install prompts
+> `install.sh` only touches the repo on its own. **Installing Ollama, starting
+> the daemon, pulling the model, or launching the app are all opt-in y/N
+> prompts.** Press Enter and nothing changes on your host.
 
-`install.sh` does the Python-side setup (venv + pip) without asking —
-those changes live inside the repository. Anything that touches the
-host system or your home directory is **opt-in** via a y/N prompt:
-
-| Detected condition                            | Prompt                                                   | Default |
-| --------------------------------------------- | -------------------------------------------------------- | ------- |
-| Ollama binary missing (macOS or Linux)        | "Install Ollama now? (will run the official installer)"  | **No**  |
-| Ollama installed but daemon not on :11434     | "Start 'ollama serve' in the background now?"            | **No**  |
-| Default model (`gemma3:4b`) missing locally   | "Pull '<model>' now? (this can take several minutes)"    | **No**  |
-| Install finished                              | "Launch the tutor now (./run.sh)?"                       | **No**  |
-
-Accepted "yes" answers are `y`, `Y`, `yes`, `Yes`, `YES`. Anything else
-— including pressing Enter on an empty line — is treated as "no". The
-upstream Ollama installer on Linux (`curl https://ollama.com/install.sh | sh`)
-may itself invoke `sudo`; that is the documented upstream path.
-
-### Non-interactive / CI usage
-
-The same flow runs unattended:
+### Unattended install
 
 ```bash
-# CI: do not touch Ollama, do nothing system-level.
-TUTOR_SKIP_OLLAMA=1 TUTOR_NONINTERACTIVE=1 ./install.sh
-
-# Unattended local install where the operator has pre-approved everything.
-PYTHON_TUTOR_ASSUME_YES=1 ./install.sh
+TUTOR_NONINTERACTIVE=1 ./install.sh      # answer "no" to everything
+PYTHON_TUTOR_ASSUME_YES=1 ./install.sh   # answer "yes" to everything (trusted hosts only)
+TUTOR_SKIP_OLLAMA=1 ./install.sh         # skip all Ollama probes
 ```
 
-Relevant env vars:
-
-| Variable                       | Effect                                                              |
-| ------------------------------ | ------------------------------------------------------------------- |
-| `TUTOR_NONINTERACTIVE=1`       | Never prompt; answer **no** to every install/start/pull/launch ask. |
-| `PYTHON_TUTOR_NONINTERACTIVE=1`| Alias for the above.                                                |
-| `PYTHON_TUTOR_ASSUME_YES=1`    | Never prompt; answer **yes** (use only if you trust the host).      |
-| `PYTHON_TUTOR_AUTOLAUNCH=1`    | After install, `exec ./run.sh` without asking.                      |
-| `TUTOR_SKIP_OLLAMA=1`          | Skip every Ollama probe entirely.                                   |
-| `TUTOR_SKIP_MODEL_PULL=1`      | Skip the `ollama pull` step (binary/daemon checks still run).       |
-| `TUTOR_MODEL=<tag>`            | Override the default `gemma3:4b`.                                   |
-
-### Expected behaviour when Ollama is not running
-
-- The web UI loads normally — you can read lessons and run code locally
-  (`POST /api/run` does not need the LLM).
-- `/api/health` reports `status: "degraded"` and `ollama_reachable: false`.
-- `Evaluate` and the chat panel return a clear 503 — they don't hang.
-- As soon as you start `ollama serve`, everything works without a restart.
-- `run.sh` will offer to start `ollama serve` for you if it sees the
-  binary but not the daemon. Decline and it continues with the
-  degraded-mode warning.
-
-### What if Ollama isn't installed?
-
-`install.sh` will offer to install it for you on macOS (`brew install
-ollama`) or Linux (`curl -fsSL https://ollama.com/install.sh | sh`).
-Answer `y` to proceed, anything else to skip. If you skip, the same
-commands are printed for you to run by hand, then re-run `./install.sh`
-to pull the model.
-
-### Troubleshooting
-
-| Symptom                                | Fix                                                                                         |
-| -------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `Python 3.10+ is required`             | Install Python (see [`docs/install-runtime-workflow.md`](docs/install-runtime-workflow.md)) |
-| Chat returns `ollama_reachable: false` | Run `ollama serve` in another terminal                                                      |
-| Port 8001 already in use               | `TUTOR_PORT=9001 ./run.sh`                                                                  |
-| Model missing in chat replies          | `ollama pull gemma3:4b` (or set `TUTOR_MODEL` to your model)                                |
-| Service worker shows stale UI          | Hard-refresh the browser (Cmd/Ctrl-Shift-R)                                                 |
-| `install.sh` failed mid-`pip install`  | Re-run it — it's idempotent and reuses the venv                                             |
-| Prompts fire in CI / a script          | Set `TUTOR_NONINTERACTIVE=1` (defaults to "no") or `PYTHON_TUTOR_ASSUME_YES=1`               |
-| Ollama installer prompts for sudo      | That's the upstream Linux installer; decline the prompt or install via your package manager |
-
-For the design rationale behind the two-script flow (and the five flows
-we evaluated), see
+Full list of env vars and the design rationale behind the two-script flow:
 [`docs/install-runtime-workflow.md`](docs/install-runtime-workflow.md).
 
-## Running the Frontend (manual)
+---
 
-A static, dependency-free SPA lives in [`frontend/`](frontend/). It was adapted from the [Python Power User](https://github.com/StewAlexander-com/Python-Power-User) project (MIT) and provides the learner-facing UI for this framework.
+## Architecture at a glance
 
-```bash
-cd frontend
-python3 -m http.server 8000
-# then open http://localhost:8000/
+```
+┌──────────────────────────┐      ┌──────────────────────────┐
+│  frontend/  (static PWA) │◀────▶│  backend/  (FastAPI)     │
+│  lesson list • code lab  │      │  /api/run /api/evaluate  │
+│  floating chat FAB       │      │  /api/chat /api/exercises│
+└──────────────────────────┘      └──────────┬───────────────┘
+                                             │
+                                             ▼
+                                  ┌──────────────────────────┐
+                                  │  Ollama (local LLM)      │
+                                  │  default: gemma3:4b      │
+                                  └──────────────────────────┘
 ```
 
-Any static HTTP server works. The app must be served over `http://` (not opened as a `file://` URL) so `fetch()` and the service worker can load `content/sections.json`. See [`frontend/README.md`](frontend/README.md) for routes, layout, and how to wire it up to the local LLM and sandbox backend.
+| Layer                | Where it lives                          | Read more                                  |
+| -------------------- | --------------------------------------- | ------------------------------------------ |
+| Frontend (PWA)       | [`frontend/`](frontend/)                | [`frontend/README.md`](frontend/README.md) |
+| Backend (FastAPI)    | [`backend/`](backend/)                  | [`backend/README.md`](backend/README.md)   |
+| Curriculum & exercises | [`curriculum/`](curriculum/)          | [`curriculum/exercises/README.md`](curriculum/exercises/README.md) |
+| Sandbox & safety     | [`backend/app/safety.py`](backend/app/safety.py) | [`docs/safety-and-sandboxing.md`](docs/safety-and-sandboxing.md) |
+| Architecture         | —                                       | [`docs/architecture.md`](docs/architecture.md) |
+| UX workflow          | —                                       | [`docs/ux-workflow.md`](docs/ux-workflow.md) |
 
-## Running the Backend
+---
 
-A minimal FastAPI service in [`backend/`](backend/) proxies a local
-Ollama-compatible LLM (default model: `gemma3:4b`) and exposes tutor-shaped
-endpoints (`/api/health`, `/api/config`, `/api/chat`). Quick start:
+## A word on safety
 
-```bash
-# 1. Start Ollama and pull a model (one-time)
-ollama serve &
-ollama pull gemma3:4b
+The sandbox is **prototype safety, not production isolation**. It is stronger
+than a bare `subprocess.run`, but a local single-user tutor is its design
+target — not a multi-tenant code execution service.
 
-# 2. Install and run the backend
-cd backend
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+| In force                                                | Not in force                          |
+| ------------------------------------------------------- | ------------------------------------- |
+| Static AST scan (rejects `subprocess`, `socket`, `ctypes`, `pickle`, `os.system`, `exec`, `eval`, `__import__`, …) | Kernel-level isolation                |
+| Isolated `python -I -B` subprocess, scrubbed env        | Defense against side-channel attacks  |
+| Per-call tempdir at `0o700`, removed after run          | macOS `RLIMIT_AS` (Python ignores it) |
+| Wall-clock timeout + process-group kill                 | Windows POSIX rlimits                 |
+| POSIX rlimits: CPU, memory, file size, nproc            |                                       |
+| Output truncation + code-size cap                       |                                       |
 
-# 3. In another shell, serve the frontend
-cd frontend && python3 -m http.server 8000
-```
-
-Open <http://localhost:8000/> for the UI and <http://localhost:8001/docs> for
-the auto-generated OpenAPI explorer. Override `OLLAMA_URL` and `TUTOR_MODEL`
-to point at a different server or model. See [`backend/README.md`](backend/README.md)
-for the full env-var reference, request/response shapes, and test instructions.
-
-## End-to-End: Frontend + Backend + Ollama
-
-The static PWA in [`frontend/`](frontend/) ships with an "Ask tutor" floating
-chat panel ([`frontend/tutor-chat.js`](frontend/tutor-chat.js)) that talks to
-the backend's `POST /api/chat`. There are two supported run modes.
-
-### Mode A — single process (recommended for first run)
-
-The backend serves the frontend directly. No CORS, no second port.
-
-```bash
-# 1. Ollama
-ollama serve &
-ollama pull gemma3:4b
-
-# 2. Backend + frontend together
-cd backend
-python3 -m venv .venv
-.venv/bin/pip install -r requirements.txt
-TUTOR_SERVE_FRONTEND=1 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001
-```
-
-Open <http://localhost:8001/> — the chat FAB appears bottom-right.
-
-### Mode B — split static server and backend (developer-friendly)
-
-Useful when iterating on frontend assets without reloading uvicorn.
-
-```bash
-# Terminal 1 — Ollama
-ollama serve & ollama pull gemma3:4b
-
-# Terminal 2 — backend on :8001 (CORS allows :8000 by default)
-cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
-
-# Terminal 3 — static frontend on :8000
-cd frontend && python3 -m http.server 8000
-```
-
-Open <http://localhost:8000/>. The chat module auto-detects port `8001` when
-served from `localhost:8000`. To point at a different backend, either edit the
-`<meta name="tutor-backend">` tag in `frontend/index.html`, or run this once in
-the browser console:
-
-```js
-localStorage.setItem('tutor-backend', 'http://my-host:8001');
-location.reload();
-```
-
-The chat module reads (in order): `window.TUTOR_BACKEND_URL` → `<meta
-name="tutor-backend">` → `localStorage["tutor-backend"]` → port heuristic →
-same origin.
-
-## UX Workflow — read · run · evaluate
-
-Every section view now ends with an inline **code lab**: an editor seeded
-with the section's example snippet, a **Run** button that executes the code
-locally, and an **Evaluate** button that sends the code + the actual run
-output to the tutor for evidence-based feedback. The floating chat panel
-stays available for free-form questions.
-
-```mermaid
-flowchart LR
-  Lesson["Lesson view"] --> Lab["Code lab editor"]
-  Lab -- "Run" --> RunApi["/api/run<br/>subprocess + timeout"]
-  RunApi --> Lab
-  Lab -- "Evaluate" --> EvalApi["/api/evaluate<br/>evidence packet → LLM"]
-  EvalApi --> Lab
-  Lab -. "free-form" .-> Chat["Floating chat → /api/chat"]
-```
-
-The five candidate workflows considered, the trade-offs, and the chosen
-blend (lesson-first spine + inline code-lab + evidence-packet evaluation)
-are written up in [`docs/ux-workflow.md`](docs/ux-workflow.md).
-
-### New backend endpoints
-
-- `POST /api/run` — runs the submitted code in an isolated Python subprocess.
-  See [Sandbox controls](#sandbox-controls) below for what's in force. The
-  response now includes `blocked` and `safety_events` so the frontend can
-  show why a static scanner refusal happened.
-- `POST /api/evaluate` — accepts `{code, section?, question?, run_output?}`,
-  runs the code if `run_output` is missing, builds an evidence packet, looks
-  up credible Python documentation references (see
-  [Documentation references](#documentation-references)), and asks the LLM
-  for a hint-first assessment. Returns
-  `{assessment, feedback, next_step, run, model, docs}`.
-- `POST /api/chat` — chat with the tutor. The response includes a `docs`
-  block with the same reference policy when the user's last turn matches a
-  curated topic.
-- `GET /api/exercises` / `GET /api/exercises/{id}` /
-  `POST /api/exercises/{id}/grade` — structured exercises (prompt, starter
-  code, visible + hidden tests). The grader appends a JSON-emitting harness
-  to the student's code, runs it through the sandbox, and reports
-  per-assertion pass/fail. See
-  [`curriculum/exercises/README.md`](curriculum/exercises/README.md) for
-  the schema.
-- `POST /api/docs/lookup` — return reference URLs for a given
-  code/question/section without involving the LLM. Useful for the frontend
-  to surface docs alongside any view.
-
-### Sandbox controls
-
-The runner remains **prototype safety**, not production isolation, but is
-stronger than the original subprocess + timeout combo:
-
-- subprocess with `python -I -B` (isolated mode, no `.pyc`),
-- empty environment — `PATH` is not propagated; `HOME` is `/nonexistent`,
-- per-call tempdir at mode `0o700`, removed after the run,
-- hard wall-clock timeout (`TUTOR_RUN_TIMEOUT`, default 5s, clamped 0.5–30s),
-- POSIX resource limits via `setrlimit` in a `preexec_fn` (CPU seconds,
-  address space, file size, core file, process count),
-- process-group kill on timeout so any children die with the parent,
-- static AST scan ([`backend/app/safety.py`](backend/app/safety.py)) that
-  refuses obvious hostile patterns (`subprocess`, `socket`, `ctypes`,
-  `urllib`, `pickle`, `os.system`, `exec`, `eval`, `__import__`, …) before
-  the subprocess starts and reports `safety_events`,
-- output truncation per stream,
-- code-size cap.
-
-Resource-limit defaults are configurable: `TUTOR_RUN_CPU_SECONDS=5`,
-`TUTOR_RUN_MEM_MB=256`, `TUTOR_RUN_FSIZE_MB=16`, `TUTOR_RUN_NPROC=64`. Set
-`TUTOR_STRICT_IMPORTS=1` to also block `os`, `pathlib`, `shutil`,
-`tempfile`, `glob`, `importlib`, and bare `open()`.
-
-**Known limits.** None of these defend against kernel-level escape or
-side-channel attacks. macOS does not honour `RLIMIT_AS` for Python (we
-log + continue). Windows has no `resource` module — the runner still
-applies timeout, env scrubbing, tempdir, and the static scan, but no
-rlimits. For multi-tenant or hostile workloads, run inside a container,
-microVM, or restricted user — see
+For multi-tenant or hostile workloads, wrap the runner in a container, a
+microVM, or a restricted user. Details and threat model:
 [`docs/safety-and-sandboxing.md`](docs/safety-and-sandboxing.md).
 
-### Documentation references
+---
 
-Tutor answers now include source links to **official Python documentation**
-when topics match a curated allowlist. The references the tutor surfaces
-are always one of:
+## Documentation citations
 
-1. a hit from the in-repo curated map
-   ([`backend/app/docs_refs.py`](backend/app/docs_refs.py)) keyed off
-   tokens in the student's code, question, or section title,
-2. an exercise-supplied URL on the allowlist
-   ([`curriculum/exercises/*.json` `references`](curriculum/exercises/README.md)).
+The tutor only cites **official Python docs from a curated allowlist** —
+`docs.python.org`, `peps.python.org`, `packaging.python.org`, plus the official
+sites for NumPy, pandas, Matplotlib, SciPy, Flask, FastAPI, Django, Requests,
+HTTPX, SQLAlchemy, pytest, and mypy. URLs are **never generated by the LLM**:
+they come from an in-repo map ([`backend/app/docs_refs.py`](backend/app/docs_refs.py))
+or exercise-supplied references. When online, each link is HEAD-checked before
+display; unreachable links are dropped or flagged "unverified".
 
-There is **no LLM-authored URL generation**. The model is instructed (via
-the evaluation prompt and the augmented chat system message) to cite only
-from the supplied list verbatim or not at all.
+---
 
-When `TUTOR_DOCS_ONLINE=1` (default) the backend issues a short HEAD
-request to each candidate URL with `TUTOR_DOCS_TIMEOUT` (default 2s,
-clamped 0.5–10s). Unreachable URLs are dropped; if *every* URL fails the
-references are still returned with `online_ok=false` and a `note` so the
-UI can show them dimmed and labelled "unverified". Set
-`TUTOR_DOCS_ONLINE=0` to skip the network entirely (fully offline).
+## CI
 
-Override the host allowlist with `TUTOR_DOCS_ALLOWLIST="docs.python.org,…"`
-(comma-separated). Defaults are listed in `docs_refs.DEFAULT_ALLOWED_HOSTS`
-and cover docs.python.org, packaging.python.org, peps.python.org,
-docs.pytest.org, mypy/typing readthedocs, pip/setuptools, and the official
-docs sites of NumPy, pandas, Matplotlib, SciPy, Flask, FastAPI, Django,
-Requests, HTTPX, and SQLAlchemy.
+GitHub Actions runs on every push and pull request: backend tests, a static
+safety scan over the curriculum, and a Markdown link sanity check. See
+[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
-### Configurable via env
+---
 
-| Variable                   | Default | Notes                                     |
-|----------------------------|--------:|-------------------------------------------|
-| `TUTOR_RUN_TIMEOUT`        | 5       | wall-clock timeout (s, clamp 0.5–30)      |
-| `TUTOR_RUN_MAX_CODE_BYTES` | 50 000  | refuse oversize submissions               |
-| `TUTOR_RUN_MAX_OUTPUT_BYTES` | 32 000 | per-stream truncation                    |
-| `TUTOR_RUN_CPU_SECONDS`    | 5       | POSIX RLIMIT_CPU                          |
-| `TUTOR_RUN_MEM_MB`         | 256     | POSIX RLIMIT_AS                           |
-| `TUTOR_RUN_FSIZE_MB`       | 16      | POSIX RLIMIT_FSIZE                        |
-| `TUTOR_RUN_NPROC`          | 64      | POSIX RLIMIT_NPROC                        |
-| `TUTOR_STRICT_IMPORTS`     | 0       | also block `os`, `pathlib`, `open(…)`     |
-| `TUTOR_DOCS_ONLINE`        | 1       | HEAD-check candidate URLs                 |
-| `TUTOR_DOCS_TIMEOUT`       | 2.0     | online check timeout (s, clamp 0.5–10)    |
-| `TUTOR_DOCS_ALLOWLIST`     | curated | CSV override of allowed doc hosts         |
-| `TUTOR_EXERCISES_DIR`      | repo    | override exercise directory               |
-
-## Core Components
-
-- **Tutor UI**: A local web app, terminal interface, or desktop shell where the student reads lessons, submits code, and receives feedback.
-- **Tutor Orchestrator**: The control layer that decides when to call the LLM, when to run tests, when to ask a question, and when to advance the curriculum.
-- **Local LLM Adapter**: A thin interface around Ollama, llama.cpp, LM Studio, or a local Transformers server.
-- **Curriculum Engine**: A structured set of lessons, exercises, prerequisites, rubrics, and mastery criteria.
-- **Python Sandbox**: A restricted execution environment for student code with timeouts, file controls, memory limits, and optionally network isolation.
-- **Assessment Layer**: Unit tests, output checks, AST checks, and rubric scoring.
-- **Learner State Store**: Local progress tracking for completed lessons, recurring mistakes, confidence, and next recommended exercises.
-
-## Recommended MVP
-
-Start with a terminal or lightweight web app. Avoid premature fine-tuning. Prompt a local Gemma model with a strong tutor policy, run student code in a constrained process, and use tests to ground the feedback.
-
-```mermaid
-flowchart LR
-    A[Student submits code] --> B[Run visible tests]
-    B --> C{Passed?}
-    C -- Yes --> D[Ask reflection question]
-    D --> E[Advance or give stretch exercise]
-    C -- No --> F[Collect stderr, stdout, failed tests]
-    F --> G[Ask LLM for hint-first explanation]
-    G --> H[Return one next action]
-    H --> A
-```
-
-## Minimal API Shape
-
-```text
-TutorSession
-  - start_lesson(topic)
-  - submit_code(code)
-  - request_hint()
-  - explain_error(error)
-  - advance_when_mastered()
-
-ModelAdapter
-  - generate(messages, options)
-
-SandboxRunner
-  - run(code, timeout_seconds)
-  - run_tests(code, tests, timeout_seconds)
-
-CurriculumStore
-  - get_lesson(id)
-  - get_next_exercise(profile)
-  - record_attempt(result)
-```
-
-## Example Local LLM Call
-
-This framework assumes the app can call a local model server. For example, an Ollama-compatible adapter would POST to:
-
-```text
-http://localhost:11434/api/generate
-```
-
-The tutor should pass structured context:
-
-```json
-{
-  "role": "system",
-  "content": "You are a Python tutor. Teach with hints first. Do not solve the whole problem unless the learner asks."
-}
-```
-
-## Teaching Loop
-
-1. Select a lesson based on learner state.
-2. Present a small concept and a constrained exercise.
-3. Student submits code.
-4. Sandbox runs the code and tests.
-5. Orchestrator summarizes runtime evidence.
-6. Local LLM generates a hint-first explanation.
-7. Student revises.
-8. System records progress and selects the next step.
-
-## Safety Principles
-
-- Run code with strict timeouts.
-- Disable or heavily restrict filesystem access.
-- Disable network access by default.
-- Limit subprocess creation.
-- Capture stdout, stderr, return code, and timeout state.
-- Prefer containers, microVMs, or restricted users for serious deployments.
-- Never let the LLM decide whether code is safe to execute.
-
-## Development Milestones
-
-- **M0: Design docs**: This repository.
-- **M1: CLI prototype**: Local prompt, code submission, subprocess runner, basic tests.
-- **M2: Curriculum prototype**: Foundations track with exercises and rubrics.
-- **M3: Web UI**: Browser-based lesson flow and code editor.
-- **M4: Learner memory**: Local SQLite state and personalized next-step selection.
-- **M5: Hardening**: Container sandbox, security policy, telemetry-free local logs.
-- **M6: Model comparison**: Compare Gemma variants and other local models for tutoring quality.
-
-## Build Philosophy
-
-Treat the tutor as a cyber-physical-ish feedback system: the LLM is a natural-language controller, the Python runtime is the measurement layer, tests are sensors, and the curriculum engine is the state machine. Keep subjective encouragement separate from objective evidence.
-
-## Next Steps
-
-Read:
+## Going deeper
 
 - [Architecture](docs/architecture.md)
 - [Workflow](docs/workflow.md)
-- [Safety and Sandboxing](docs/safety-and-sandboxing.md)
+- [UX workflow](docs/ux-workflow.md)
+- [Safety & sandboxing](docs/safety-and-sandboxing.md)
 - [Evaluation](docs/evaluation.md)
 - [Roadmap](docs/roadmap.md)
-- [Python Foundations Curriculum](curriculum/python-foundations.md)
-- [Tutor System Prompt](prompts/tutor-system-prompt.md)
-- [Frontend](frontend/README.md)
-- [Backend](backend/README.md)
+- [Install & runtime workflow](docs/install-runtime-workflow.md)
+- [Python foundations curriculum](curriculum/python-foundations.md)
+- [Tutor system prompt](prompts/tutor-system-prompt.md)
+- [ADR 0001 — offline-first local LLM](adr/0001-offline-first-local-llm.md)
+
+---
+
+## Credits
+
+The static PWA frontend was adapted from
+[Python Power User](https://github.com/StewAlexander-com/Python-Power-User) (MIT).
