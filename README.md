@@ -81,13 +81,57 @@ first look at the UI; required for chat replies and code evaluation.
 ```bash
 gh repo clone StewAlexander-com/python-tutor
 cd python-tutor
-./install.sh        # creates venv, installs deps, pulls model if Ollama is up
+./install.sh        # creates venv, installs deps, then prompts y/N for
+                    # any host-level setup (install Ollama, start daemon,
+                    # pull model, launch app)
 ./run.sh            # serves UI + API on http://localhost:8001/
 ```
 
 Then open <http://localhost:8001/> in your browser. You'll see the
 lesson list, the inline code lab (Run / Evaluate), and the floating
 "Ask tutor" chat panel.
+
+### Opt-in install prompts
+
+`install.sh` does the Python-side setup (venv + pip) without asking —
+those changes live inside the repository. Anything that touches the
+host system or your home directory is **opt-in** via a y/N prompt:
+
+| Detected condition                            | Prompt                                                   | Default |
+| --------------------------------------------- | -------------------------------------------------------- | ------- |
+| Ollama binary missing (macOS or Linux)        | "Install Ollama now? (will run the official installer)"  | **No**  |
+| Ollama installed but daemon not on :11434     | "Start 'ollama serve' in the background now?"            | **No**  |
+| Default model (`gemma3:4b`) missing locally   | "Pull '<model>' now? (this can take several minutes)"    | **No**  |
+| Install finished                              | "Launch the tutor now (./run.sh)?"                       | **No**  |
+
+Accepted "yes" answers are `y`, `Y`, `yes`, `Yes`, `YES`. Anything else
+— including pressing Enter on an empty line — is treated as "no". The
+upstream Ollama installer on Linux (`curl https://ollama.com/install.sh | sh`)
+may itself invoke `sudo`; that is the documented upstream path.
+
+### Non-interactive / CI usage
+
+The same flow runs unattended:
+
+```bash
+# CI: do not touch Ollama, do nothing system-level.
+TUTOR_SKIP_OLLAMA=1 TUTOR_NONINTERACTIVE=1 ./install.sh
+
+# Unattended local install where the operator has pre-approved everything.
+PYTHON_TUTOR_ASSUME_YES=1 ./install.sh
+```
+
+Relevant env vars:
+
+| Variable                       | Effect                                                              |
+| ------------------------------ | ------------------------------------------------------------------- |
+| `TUTOR_NONINTERACTIVE=1`       | Never prompt; answer **no** to every install/start/pull/launch ask. |
+| `PYTHON_TUTOR_NONINTERACTIVE=1`| Alias for the above.                                                |
+| `PYTHON_TUTOR_ASSUME_YES=1`    | Never prompt; answer **yes** (use only if you trust the host).      |
+| `PYTHON_TUTOR_AUTOLAUNCH=1`    | After install, `exec ./run.sh` without asking.                      |
+| `TUTOR_SKIP_OLLAMA=1`          | Skip every Ollama probe entirely.                                   |
+| `TUTOR_SKIP_MODEL_PULL=1`      | Skip the `ollama pull` step (binary/daemon checks still run).       |
+| `TUTOR_MODEL=<tag>`            | Override the default `gemma3:4b`.                                   |
 
 ### Expected behaviour when Ollama is not running
 
@@ -96,21 +140,17 @@ lesson list, the inline code lab (Run / Evaluate), and the floating
 - `/api/health` reports `status: "degraded"` and `ollama_reachable: false`.
 - `Evaluate` and the chat panel return a clear 503 — they don't hang.
 - As soon as you start `ollama serve`, everything works without a restart.
+- `run.sh` will offer to start `ollama serve` for you if it sees the
+  binary but not the daemon. Decline and it continues with the
+  degraded-mode warning.
 
 ### What if Ollama isn't installed?
 
-`install.sh` and `run.sh` **never** install system binaries on your
-behalf. If Ollama is missing, they print exactly what to run:
-
-```bash
-# macOS
-brew install ollama && ollama serve &
-
-# Linux
-curl -fsSL https://ollama.com/install.sh | sh && ollama serve &
-```
-
-Then `./install.sh` again to pull `gemma3:4b`.
+`install.sh` will offer to install it for you on macOS (`brew install
+ollama`) or Linux (`curl -fsSL https://ollama.com/install.sh | sh`).
+Answer `y` to proceed, anything else to skip. If you skip, the same
+commands are printed for you to run by hand, then re-run `./install.sh`
+to pull the model.
 
 ### Troubleshooting
 
@@ -122,6 +162,8 @@ Then `./install.sh` again to pull `gemma3:4b`.
 | Model missing in chat replies          | `ollama pull gemma3:4b` (or set `TUTOR_MODEL` to your model)                                |
 | Service worker shows stale UI          | Hard-refresh the browser (Cmd/Ctrl-Shift-R)                                                 |
 | `install.sh` failed mid-`pip install`  | Re-run it — it's idempotent and reuses the venv                                             |
+| Prompts fire in CI / a script          | Set `TUTOR_NONINTERACTIVE=1` (defaults to "no") or `PYTHON_TUTOR_ASSUME_YES=1`               |
+| Ollama installer prompts for sudo      | That's the upstream Linux installer; decline the prompt or install via your package manager |
 
 For the design rationale behind the two-script flow (and the five flows
 we evaluated), see

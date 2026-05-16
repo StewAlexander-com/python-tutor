@@ -154,25 +154,59 @@ flowchart TD
 
 ## Decision
 
-We ship **Candidate D, blended with one ergonomic touch from C**.
+We ship **Candidate D, blended with the consent-gated ergonomics of C**.
 
 - **From D**: two-script split (`install.sh`, `run.sh`); we *detect*
-  Ollama rather than installing it; we never start daemons in
-  `install.sh`; the run-time server still launches if Ollama is down so
-  the UI is usable and the failure is observable in the chat panel.
-- **From C**: in `install.sh`, if Ollama *is* present, we offer to
-  `ollama pull` the default model on the user's behalf — gated by
-  `TUTOR_SKIP_MODEL_PULL` and skippable in CI. Pulling a model the user
-  already chose to have Ollama for is low-risk and saves a step.
+  Ollama and the model rather than installing them silently; the
+  run-time server still launches if Ollama is down so the UI is usable
+  and the failure is observable in the chat panel.
+- **From C**: when something host-level is missing — the Ollama binary,
+  the `ollama serve` daemon, or the default model — `install.sh`
+  *offers* to handle it. The user types `y` to accept. The default
+  answer is **no**, so pressing Enter never installs a system binary.
 
 This blend has:
 
 - 2 commands typed (`./install.sh`, `./run.sh`) — same as B/D/E.
-- Zero hidden system-level installs.
-- One actionable error message if Ollama is missing (we print the
-  install command for the user's platform).
+- Zero hidden system-level installs. Every system-touching action is
+  preceded by an explicit y/N confirmation.
+- A single non-interactive entry-point for CI
+  (`TUTOR_NONINTERACTIVE=1` defaults all prompts to "no";
+  `PYTHON_TUTOR_ASSUME_YES=1` defaults them to "yes" for pre-approved
+  unattended setup).
 - A web UI that loads even when the LLM is unreachable — so the learner
   always gets *something* to interact with.
+
+```mermaid
+flowchart TD
+    Clone[git clone repo] --> Install[./install.sh]
+    Install --> Py[Python 3.10+ check]
+    Py --> Venv[Create / reuse backend/.venv]
+    Venv --> Pip[pip install backend deps]
+    Pip --> HasOllama{ollama on PATH?}
+    HasOllama -- no --> AskInstall{Install Ollama now? y/N}
+    AskInstall -- y --> RunInstaller[Run upstream installer]
+    AskInstall -- N --> HintInstall[Print manual install hint]
+    RunInstaller --> Daemon{Daemon on :11434?}
+    HasOllama -- yes --> Daemon
+    HintInstall --> NextBanner
+    Daemon -- yes --> Model{Model present?}
+    Daemon -- no --> AskStart{Start 'ollama serve' now? y/N}
+    AskStart -- y --> Spawn[nohup ollama serve & probe up to 10s]
+    AskStart -- N --> HintStart[Print 'run: ollama serve' hint]
+    Spawn --> Model
+    HintStart --> NextBanner
+    Model -- yes --> NextBanner
+    Model -- no --> AskPull{"Pull model? y/N"}
+    AskPull -- y --> Pull[ollama pull TUTOR_MODEL]
+    AskPull -- N --> HintPull[Print 'ollama pull' hint]
+    Pull --> NextBanner
+    HintPull --> NextBanner
+    NextBanner --> AskLaunch{Launch ./run.sh? y/N}
+    AskLaunch -- y --> Run[./run.sh → uvicorn]
+    AskLaunch -- N --> Done[Print next-step banner]
+    Run --> Browser[Open http://localhost:8001]
+```
 
 ## How the scripts behave
 
@@ -181,20 +215,28 @@ This blend has:
 1. Detect Python ≥3.10. If missing or too old, print install command,
    exit 1.
 2. Create `backend/.venv` if it doesn't exist; otherwise reuse it.
-3. `pip install -r backend/requirements-dev.txt` (idempotent).
-4. Check `ollama` on `PATH`. If missing, print install command and exit
-   0 (success — the Python side is set up). User can re-run install
-   later, or just run.
-5. If `ollama` is present, probe `http://localhost:11434/api/tags`. If
-   the daemon is up, pull the default model (skippable via
-   `TUTOR_SKIP_MODEL_PULL=1`). If the daemon is down, print
-   `ollama serve &` and continue.
-6. Print next-step banner: `./run.sh`.
+3. `pip install -r backend/requirements-dev.txt` (idempotent;
+   not gated by a prompt — those changes live inside the repo).
+4. Check `ollama` on `PATH`. If missing, **prompt** to install via the
+   OS-appropriate upstream installer (`brew install ollama` on macOS,
+   `curl https://ollama.com/install.sh | sh` on Linux). Decline and
+   the script prints the manual command and continues.
+5. If `ollama` is present, probe `http://localhost:11434/api/tags`.
+   If the daemon is down, **prompt** to start `ollama serve` in the
+   background (`nohup`, logged to `/tmp/ollama-serve.log`).
+6. If the daemon is up, check for the model
+   (`TUTOR_MODEL`, default `gemma3:4b`). If absent, **prompt** to
+   `ollama pull` it.
+7. After setup, **prompt** "Launch the tutor now (./run.sh)?".
+   `PYTHON_TUTOR_AUTOLAUNCH=1` or `PYTHON_TUTOR_ASSUME_YES=1` answers
+   yes without asking.
 
 ### `run.sh`
 
-1. Ensure venv exists (re-run `install.sh` if not).
-2. Probe Ollama; warn if unreachable but continue.
+1. Ensure venv exists (re-run `install.sh` in non-interactive,
+   skip-Ollama mode if not — this never installs system binaries).
+2. Probe Ollama; if installed but the daemon is down, **prompt** to
+   start `ollama serve`. If declined, warn and continue.
 3. Launch uvicorn with `TUTOR_SERVE_FRONTEND=1` so the backend serves
    the static frontend on the same port.
 4. Print the URL: `http://localhost:8001/`.
@@ -206,25 +248,34 @@ This blend has:
 - `TUTOR_MODEL` — Ollama model tag (default `gemma3:4b`).
 - `TUTOR_SKIP_OLLAMA=1` — skip every Ollama probe (CI/offline-dev).
 - `TUTOR_SKIP_MODEL_PULL=1` — skip `ollama pull` in install.
-- `TUTOR_NONINTERACTIVE=1` — never prompt; assume defaults.
+- `TUTOR_NONINTERACTIVE=1` — never prompt; auto-answer **no**.
+- `PYTHON_TUTOR_NONINTERACTIVE=1` — alias for the above.
+- `PYTHON_TUTOR_ASSUME_YES=1` — never prompt; auto-answer **yes**.
+- `PYTHON_TUTOR_AUTOLAUNCH=1` — `exec ./run.sh` after install
+  without asking.
 
 ## What the user does
+
+Default interactive flow:
 
 ```bash
 gh repo clone StewAlexander-com/python-tutor
 cd python-tutor
-./install.sh        # ~2 min cold; reuses cache on re-run
-./run.sh            # opens at http://localhost:8001/
+./install.sh        # ~2 min cold; prompts y/N for each system action
+                    # answer 'y' to install Ollama, start the daemon,
+                    # pull the model, and launch the app
 ```
 
-If Ollama is missing, `install.sh` will tell them exactly what to type:
+If you'd rather drive it yourself, decline every prompt and the script
+still finishes successfully — only the Python side is set up, with
+clear hints for what to run next.
+
+Unattended:
 
 ```bash
-# macOS
-brew install ollama && ollama serve &
+# Pre-approved: install Ollama, start it, pull the model, exec run.sh.
+PYTHON_TUTOR_ASSUME_YES=1 ./install.sh
 
-# Linux
-curl -fsSL https://ollama.com/install.sh | sh && ollama serve &
+# CI: do not touch Ollama at all.
+TUTOR_SKIP_OLLAMA=1 TUTOR_NONINTERACTIVE=1 ./install.sh
 ```
-
-Then `./install.sh && ./run.sh` again.
