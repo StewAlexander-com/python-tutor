@@ -111,6 +111,59 @@ the auto-generated OpenAPI explorer. Override `OLLAMA_URL` and `TUTOR_MODEL`
 to point at a different server or model. See [`backend/README.md`](backend/README.md)
 for the full env-var reference, request/response shapes, and test instructions.
 
+## End-to-End: Frontend + Backend + Ollama
+
+The static PWA in [`frontend/`](frontend/) ships with an "Ask tutor" floating
+chat panel ([`frontend/tutor-chat.js`](frontend/tutor-chat.js)) that talks to
+the backend's `POST /api/chat`. There are two supported run modes.
+
+### Mode A — single process (recommended for first run)
+
+The backend serves the frontend directly. No CORS, no second port.
+
+```bash
+# 1. Ollama
+ollama serve &
+ollama pull gemma3:4b
+
+# 2. Backend + frontend together
+cd backend
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+TUTOR_SERVE_FRONTEND=1 .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001
+```
+
+Open <http://localhost:8001/> — the chat FAB appears bottom-right.
+
+### Mode B — split static server and backend (developer-friendly)
+
+Useful when iterating on frontend assets without reloading uvicorn.
+
+```bash
+# Terminal 1 — Ollama
+ollama serve & ollama pull gemma3:4b
+
+# Terminal 2 — backend on :8001 (CORS allows :8000 by default)
+cd backend && .venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+
+# Terminal 3 — static frontend on :8000
+cd frontend && python3 -m http.server 8000
+```
+
+Open <http://localhost:8000/>. The chat module auto-detects port `8001` when
+served from `localhost:8000`. To point at a different backend, either edit the
+`<meta name="tutor-backend">` tag in `frontend/index.html`, or run this once in
+the browser console:
+
+```js
+localStorage.setItem('tutor-backend', 'http://my-host:8001');
+location.reload();
+```
+
+The chat module reads (in order): `window.TUTOR_BACKEND_URL` → `<meta
+name="tutor-backend">` → `localStorage["tutor-backend"]` → port heuristic →
+same origin.
+
 ## Core Components
 
 - **Tutor UI**: A local web app, terminal interface, or desktop shell where the student reads lessons, submits code, and receives feedback.

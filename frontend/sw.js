@@ -3,13 +3,15 @@
    Cache-first for shell, network-first for content
    ============================================================ */
 
-const CACHE_VERSION = 'pytutor-v2026-05-16a';
+const CACHE_VERSION = 'pytutor-v2026-05-16b';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './base.css',
   './style.css',
+  './tutor-chat.css',
   './app.js',
+  './tutor-chat.js',
   './manifest.json',
   './assets/favicon.svg',
   './content/sections.json'
@@ -44,6 +46,11 @@ self.addEventListener('fetch', (e) => {
   // Skip cross-origin requests except fonts
   if (url.origin !== location.origin) {
     // Let font requests through to network (they have their own CDN caching)
+    return;
+  }
+
+  // Never cache tutor backend API calls — they must hit the live FastAPI server.
+  if (url.pathname.startsWith('/api/')) {
     return;
   }
 

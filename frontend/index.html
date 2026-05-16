@@ -79,6 +79,15 @@
 
 <link rel="stylesheet" href="base.css?v=20260416c" />
 <link rel="stylesheet" href="style.css?v=20260416b" />
+<link rel="stylesheet" href="tutor-chat.css?v=20260516a" />
+
+<!--
+  Tutor backend base URL. Defaults to "" (same origin) which is what you want
+  when the backend serves the frontend (TUTOR_SERVE_FRONTEND=1). For split
+  static-server + backend dev, set content="http://localhost:8001" or override
+  at runtime via localStorage.setItem('tutor-backend', 'http://...').
+-->
+<meta name="tutor-backend" content="" />
 </head>
 <body>
 
@@ -258,6 +267,7 @@
 </noscript>
 
 <script src="app.js?v=20260416" defer></script>
+<script src="tutor-chat.js?v=20260516a" defer></script>
 
 <!-- Service Worker Registration + Cache Bust -->
 <script>

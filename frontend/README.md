@@ -10,8 +10,10 @@ It runs entirely in the browser, loads `content/sections.json` over `fetch`, and
 frontend/
 ├── index.html          # SPA shell, hash routing (#/, #/beginner, #/power, #/s/<key>)
 ├── app.js              # Router, renderer, lightweight Python syntax highlighter
+├── tutor-chat.js       # Floating chat panel that calls POST /api/chat
 ├── base.css            # Reset + base typography
 ├── style.css           # Theme and layout
+├── tutor-chat.css      # Chat panel styles
 ├── manifest.json       # PWA manifest
 ├── sw.js               # Service worker (cache-first shell, SWR for the rest)
 ├── 404.html            # GitHub Pages SPA hash redirect helper
@@ -62,10 +64,33 @@ The app uses hash routing so it works from any path:
 
 ## Hooking it up to the tutor backend
 
-The current `app.js` is read-only and self-contained. To turn it into the **Tutor UI** referred to in [`docs/architecture.md`](../docs/architecture.md), future work should add:
+The first piece of tutor interactivity is in [`tutor-chat.js`](tutor-chat.js):
+a floating "Ask tutor" panel that POSTs the running message history to the
+backend's [`/api/chat`](../backend/README.md#post-apichat) endpoint and renders
+the assistant reply (markdown-ish — fenced code blocks and inline backticks
+are recognised). When a section is open, its number and title are prepended to
+the user message as lightweight context.
+
+### Backend URL resolution
+
+The chat module looks up the backend URL in this order:
+
+1. `window.TUTOR_BACKEND_URL` (set by an inline `<script>` before `tutor-chat.js`)
+2. `<meta name="tutor-backend" content="...">` in `index.html`
+3. `localStorage.getItem('tutor-backend')`
+4. Heuristic: if the page is on `localhost:<other port>`, assume the backend is on `:8001`
+5. Same origin (empty string) — used when the backend serves the frontend with `TUTOR_SERVE_FRONTEND=1`
+
+### Service-worker bypass
+
+`sw.js` explicitly bypasses any same-origin URL starting with `/api/`, so
+chat requests always hit the live FastAPI server even when the rest of the
+shell is served from cache.
+
+### Still to come
 
 1. A code-editor pane on the section view, posting student code to a local sandbox endpoint.
-2. A hint/feedback pane that streams responses from a local LLM adapter (Ollama / llama.cpp / LM Studio).
+2. Streaming responses (the backend already supports `stream: true` NDJSON).
 3. A learner-state read/write layer talking to a small local store.
 
 Keeping the frontend static means it can be hosted next to the backend as a `file://`-equivalent app, embedded in a desktop shell, or served by the tutor process itself.
