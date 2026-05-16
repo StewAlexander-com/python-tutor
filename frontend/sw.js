@@ -3,15 +3,17 @@
    Cache-first for shell, network-first for content
    ============================================================ */
 
-const CACHE_VERSION = 'pytutor-v2026-05-16b';
+const CACHE_VERSION = 'pytutor-v2026-05-16c';
 const SHELL_ASSETS = [
   './',
   './index.html',
   './base.css',
   './style.css',
   './tutor-chat.css',
+  './tutor-codelab.css',
   './app.js',
   './tutor-chat.js',
+  './tutor-codelab.js',
   './manifest.json',
   './assets/favicon.svg',
   './content/sections.json'

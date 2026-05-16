@@ -713,6 +713,9 @@
     el.secBody.innerHTML = html;
     wireCopyButtons(el.secBody);
     wireScrollHints(el.secBody);
+    if (window.TutorCodeLab && typeof window.TutorCodeLab.mountInto === 'function') {
+      window.TutorCodeLab.mountInto(el.secBody, sec);
+    }
   }
 
   function renderReferenceBody(sec) {
