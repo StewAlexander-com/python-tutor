@@ -64,6 +64,11 @@ flowchart TD
 │   ├── sw.js
 │   ├── content/sections.json
 │   └── assets/
+├── backend/                  # FastAPI tutor API (see backend/README.md)
+│   ├── app/
+│   ├── tests/
+│   ├── requirements.txt
+│   └── requirements-dev.txt
 └── adr/
     └── 0001-offline-first-local-llm.md
 ```
@@ -79,6 +84,32 @@ python3 -m http.server 8000
 ```
 
 Any static HTTP server works. The app must be served over `http://` (not opened as a `file://` URL) so `fetch()` and the service worker can load `content/sections.json`. See [`frontend/README.md`](frontend/README.md) for routes, layout, and how to wire it up to the local LLM and sandbox backend.
+
+## Running the Backend
+
+A minimal FastAPI service in [`backend/`](backend/) proxies a local
+Ollama-compatible LLM (default model: `gemma3:4b`) and exposes tutor-shaped
+endpoints (`/api/health`, `/api/config`, `/api/chat`). Quick start:
+
+```bash
+# 1. Start Ollama and pull a model (one-time)
+ollama serve &
+ollama pull gemma3:4b
+
+# 2. Install and run the backend
+cd backend
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
+.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8001 --reload
+
+# 3. In another shell, serve the frontend
+cd frontend && python3 -m http.server 8000
+```
+
+Open <http://localhost:8000/> for the UI and <http://localhost:8001/docs> for
+the auto-generated OpenAPI explorer. Override `OLLAMA_URL` and `TUTOR_MODEL`
+to point at a different server or model. See [`backend/README.md`](backend/README.md)
+for the full env-var reference, request/response shapes, and test instructions.
 
 ## Core Components
 
@@ -193,3 +224,4 @@ Read:
 - [Python Foundations Curriculum](curriculum/python-foundations.md)
 - [Tutor System Prompt](prompts/tutor-system-prompt.md)
 - [Frontend](frontend/README.md)
+- [Backend](backend/README.md)
