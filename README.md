@@ -188,23 +188,108 @@ are written up in [`docs/ux-workflow.md`](docs/ux-workflow.md).
 
 ### New backend endpoints
 
-- `POST /api/run` — runs the submitted code in an isolated Python subprocess
-  (`python -I`, empty env, temp cwd, hard wall-clock timeout, size-limited
-  output). Returns `{stdout, stderr, exit_code, duration_ms, timed_out,
-  truncated}`. This is **prototype safety only** — subprocess + timeout +
-  restricted env. Not a real sandbox. See
-  [`docs/safety-and-sandboxing.md`](docs/safety-and-sandboxing.md) for the
-  controls a serious deployment would add (containers, seccomp, network
-  namespaces, CPU/memory limits).
+- `POST /api/run` — runs the submitted code in an isolated Python subprocess.
+  See [Sandbox controls](#sandbox-controls) below for what's in force. The
+  response now includes `blocked` and `safety_events` so the frontend can
+  show why a static scanner refusal happened.
 - `POST /api/evaluate` — accepts `{code, section?, question?, run_output?}`,
-  runs the code if `run_output` is missing, builds an evidence packet, and
-  asks the LLM for a hint-first assessment. Returns
-  `{assessment, feedback, next_step, run, model}` where `assessment` is one
-  of `passed | needs_work | error`.
+  runs the code if `run_output` is missing, builds an evidence packet, looks
+  up credible Python documentation references (see
+  [Documentation references](#documentation-references)), and asks the LLM
+  for a hint-first assessment. Returns
+  `{assessment, feedback, next_step, run, model, docs}`.
+- `POST /api/chat` — chat with the tutor. The response includes a `docs`
+  block with the same reference policy when the user's last turn matches a
+  curated topic.
+- `GET /api/exercises` / `GET /api/exercises/{id}` /
+  `POST /api/exercises/{id}/grade` — structured exercises (prompt, starter
+  code, visible + hidden tests). The grader appends a JSON-emitting harness
+  to the student's code, runs it through the sandbox, and reports
+  per-assertion pass/fail. See
+  [`curriculum/exercises/README.md`](curriculum/exercises/README.md) for
+  the schema.
+- `POST /api/docs/lookup` — return reference URLs for a given
+  code/question/section without involving the LLM. Useful for the frontend
+  to surface docs alongside any view.
 
-Configurable via env: `TUTOR_RUN_TIMEOUT` (default 5s, clamped 0.5–30s),
-`TUTOR_RUN_MAX_CODE_BYTES` (default 50 000), `TUTOR_RUN_MAX_OUTPUT_BYTES`
-(default 32 000).
+### Sandbox controls
+
+The runner remains **prototype safety**, not production isolation, but is
+stronger than the original subprocess + timeout combo:
+
+- subprocess with `python -I -B` (isolated mode, no `.pyc`),
+- empty environment — `PATH` is not propagated; `HOME` is `/nonexistent`,
+- per-call tempdir at mode `0o700`, removed after the run,
+- hard wall-clock timeout (`TUTOR_RUN_TIMEOUT`, default 5s, clamped 0.5–30s),
+- POSIX resource limits via `setrlimit` in a `preexec_fn` (CPU seconds,
+  address space, file size, core file, process count),
+- process-group kill on timeout so any children die with the parent,
+- static AST scan ([`backend/app/safety.py`](backend/app/safety.py)) that
+  refuses obvious hostile patterns (`subprocess`, `socket`, `ctypes`,
+  `urllib`, `pickle`, `os.system`, `exec`, `eval`, `__import__`, …) before
+  the subprocess starts and reports `safety_events`,
+- output truncation per stream,
+- code-size cap.
+
+Resource-limit defaults are configurable: `TUTOR_RUN_CPU_SECONDS=5`,
+`TUTOR_RUN_MEM_MB=256`, `TUTOR_RUN_FSIZE_MB=16`, `TUTOR_RUN_NPROC=64`. Set
+`TUTOR_STRICT_IMPORTS=1` to also block `os`, `pathlib`, `shutil`,
+`tempfile`, `glob`, `importlib`, and bare `open()`.
+
+**Known limits.** None of these defend against kernel-level escape or
+side-channel attacks. macOS does not honour `RLIMIT_AS` for Python (we
+log + continue). Windows has no `resource` module — the runner still
+applies timeout, env scrubbing, tempdir, and the static scan, but no
+rlimits. For multi-tenant or hostile workloads, run inside a container,
+microVM, or restricted user — see
+[`docs/safety-and-sandboxing.md`](docs/safety-and-sandboxing.md).
+
+### Documentation references
+
+Tutor answers now include source links to **official Python documentation**
+when topics match a curated allowlist. The references the tutor surfaces
+are always one of:
+
+1. a hit from the in-repo curated map
+   ([`backend/app/docs_refs.py`](backend/app/docs_refs.py)) keyed off
+   tokens in the student's code, question, or section title,
+2. an exercise-supplied URL on the allowlist
+   ([`curriculum/exercises/*.json` `references`](curriculum/exercises/README.md)).
+
+There is **no LLM-authored URL generation**. The model is instructed (via
+the evaluation prompt and the augmented chat system message) to cite only
+from the supplied list verbatim or not at all.
+
+When `TUTOR_DOCS_ONLINE=1` (default) the backend issues a short HEAD
+request to each candidate URL with `TUTOR_DOCS_TIMEOUT` (default 2s,
+clamped 0.5–10s). Unreachable URLs are dropped; if *every* URL fails the
+references are still returned with `online_ok=false` and a `note` so the
+UI can show them dimmed and labelled "unverified". Set
+`TUTOR_DOCS_ONLINE=0` to skip the network entirely (fully offline).
+
+Override the host allowlist with `TUTOR_DOCS_ALLOWLIST="docs.python.org,…"`
+(comma-separated). Defaults are listed in `docs_refs.DEFAULT_ALLOWED_HOSTS`
+and cover docs.python.org, packaging.python.org, peps.python.org,
+docs.pytest.org, mypy/typing readthedocs, pip/setuptools, and the official
+docs sites of NumPy, pandas, Matplotlib, SciPy, Flask, FastAPI, Django,
+Requests, HTTPX, and SQLAlchemy.
+
+### Configurable via env
+
+| Variable                   | Default | Notes                                     |
+|----------------------------|--------:|-------------------------------------------|
+| `TUTOR_RUN_TIMEOUT`        | 5       | wall-clock timeout (s, clamp 0.5–30)      |
+| `TUTOR_RUN_MAX_CODE_BYTES` | 50 000  | refuse oversize submissions               |
+| `TUTOR_RUN_MAX_OUTPUT_BYTES` | 32 000 | per-stream truncation                    |
+| `TUTOR_RUN_CPU_SECONDS`    | 5       | POSIX RLIMIT_CPU                          |
+| `TUTOR_RUN_MEM_MB`         | 256     | POSIX RLIMIT_AS                           |
+| `TUTOR_RUN_FSIZE_MB`       | 16      | POSIX RLIMIT_FSIZE                        |
+| `TUTOR_RUN_NPROC`          | 64      | POSIX RLIMIT_NPROC                        |
+| `TUTOR_STRICT_IMPORTS`     | 0       | also block `os`, `pathlib`, `open(…)`     |
+| `TUTOR_DOCS_ONLINE`        | 1       | HEAD-check candidate URLs                 |
+| `TUTOR_DOCS_TIMEOUT`       | 2.0     | online check timeout (s, clamp 0.5–10)    |
+| `TUTOR_DOCS_ALLOWLIST`     | curated | CSV override of allowed doc hosts         |
+| `TUTOR_EXERCISES_DIR`      | repo    | override exercise directory               |
 
 ## Core Components
 

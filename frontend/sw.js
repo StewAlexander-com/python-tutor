@@ -3,7 +3,7 @@
    Cache-first for shell, network-first for content
    ============================================================ */
 
-const CACHE_VERSION = 'pytutor-v2026-05-16c';
+const CACHE_VERSION = 'pytutor-v2026-05-16d';
 const SHELL_ASSETS = [
   './',
   './index.html',

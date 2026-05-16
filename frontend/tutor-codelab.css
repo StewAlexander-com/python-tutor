@@ -262,6 +262,62 @@
   font-size: 0.9rem;
 }
 
+.codelab__docs {
+  margin-top: 0.85rem;
+  padding: 0.6rem 0.75rem 0.75rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.88rem;
+}
+
+.codelab__docs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.codelab__docs-head strong {
+  color: #f5d58a;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.codelab__docs-status {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.codelab__docs-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.codelab__docs-list li { margin: 0.15rem 0; }
+
+.codelab__doc-link {
+  color: #9ec5ff;
+  text-decoration: none;
+  border-bottom: 1px dotted rgba(158, 197, 255, 0.4);
+}
+
+.codelab__doc-link:hover,
+.codelab__doc-link:focus {
+  color: #c8defc;
+  border-bottom-color: rgba(200, 222, 252, 0.8);
+}
+
+.codelab__docs-note {
+  margin: 0.4rem 0 0;
+  font-size: 0.78rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.55);
+}
+
 @media (max-width: 520px) {
   .codelab { padding: 1rem; }
   .codelab__safety { display: none; }

@@ -1,0 +1,21 @@
+{
+  "id": "conditionals.adult-or-minor",
+  "title": "Adult or minor",
+  "section": "Conditionals",
+  "concepts": ["if/else", "comparison", "boolean"],
+  "prompt": "Write a function `classify(age)` that returns the string `\"adult\"` when `age` is 18 or above and `\"minor\"` otherwise.",
+  "starter_code": "def classify(age):\n    # your code here\n    return \"\"\n",
+  "visible_tests": [
+    "assert classify(17) == 'minor'",
+    "assert classify(18) == 'adult'"
+  ],
+  "hidden_tests": [
+    "assert classify(0) == 'minor'",
+    "assert classify(99) == 'adult'",
+    "assert classify(18) == 'adult'"
+  ],
+  "references": [
+    "https://docs.python.org/3/tutorial/controlflow.html#if-statements",
+    "https://docs.python.org/3/reference/expressions.html#comparisons"
+  ]
+}
