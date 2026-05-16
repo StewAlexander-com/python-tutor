@@ -1,0 +1,22 @@
+{
+  "id": "functions.average",
+  "title": "Average of a list",
+  "section": "Functions",
+  "concepts": ["functions", "return values", "edge cases", "division"],
+  "prompt": "Write a function `average(numbers)` that returns the mean of *numbers* as a float. Return `0.0` for an empty list.",
+  "starter_code": "def average(numbers):\n    # your code here\n    return 0.0\n",
+  "visible_tests": [
+    "assert average([]) == 0.0",
+    "assert average([1, 2, 3]) == 2.0"
+  ],
+  "hidden_tests": [
+    "assert abs(average([10, 20]) - 15.0) < 1e-9",
+    "assert abs(average([-2, 2]) - 0.0) < 1e-9",
+    "assert isinstance(average([1, 2, 3]), float)"
+  ],
+  "references": [
+    "https://docs.python.org/3/tutorial/controlflow.html#defining-functions",
+    "https://docs.python.org/3/library/functions.html#sum",
+    "https://docs.python.org/3/library/statistics.html#statistics.mean"
+  ]
+}

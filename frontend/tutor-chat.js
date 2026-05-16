@@ -97,6 +97,20 @@
     }).join('');
   }
 
+  function renderRefs(docs) {
+    if (!docs || !Array.isArray(docs.references) || !docs.references.length) return '';
+    const items = docs.references.map((r) => {
+      const url = String(r.url || '');
+      const label = escapeHtml(r.label || url);
+      return `<li><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${label}</a></li>`;
+    }).join('');
+    const status = docs.online ? (docs.online_ok ? 'verified' : 'offline · unverified') : 'offline';
+    return `<aside class="tutor-chat__refs" aria-label="References">
+      <header><strong>References</strong> <span>${escapeHtml(status)}</span></header>
+      <ul>${items}</ul>
+    </aside>`;
+  }
+
   // ---------- Mount UI ----------
   function mount() {
     if (document.getElementById('tutorChatRoot')) return; // already mounted
@@ -259,7 +273,8 @@
       }
       const data = await res.json();
       const content = (data && data.message && data.message.content) || '';
-      state.history.push({ role: 'assistant', content });
+      const docs = data && data.docs ? data.docs : null;
+      state.history.push({ role: 'assistant', content, docs });
     } catch (err) {
       state.history.push({
         role: 'assistant',
@@ -297,10 +312,12 @@
     const html = messages.map((m) => {
       const who = m.role === 'user' ? 'You' : 'Tutor';
       const cls = m.role === 'user' ? 'tutor-chat__msg tutor-chat__msg--user' : 'tutor-chat__msg tutor-chat__msg--asst';
+      const refs = m.role === 'assistant' ? renderRefs(m.docs) : '';
       return `
         <article class="${cls}">
           <header class="tutor-chat__who">${who}</header>
           <div class="tutor-chat__body">${renderMarkdownish(m.content)}</div>
+          ${refs}
         </article>`;
     }).join('');
     const pending = opts.pending

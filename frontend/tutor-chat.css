@@ -256,3 +256,27 @@
 }
 .tutor-chat__send:hover { background: var(--amber-soft); }
 .tutor-chat__send:disabled { opacity: 0.6; cursor: progress; }
+
+.tutor-chat__refs {
+  margin: 0.5rem 0 0;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  font-size: 0.82rem;
+}
+.tutor-chat__refs header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 0.25rem;
+}
+.tutor-chat__refs header strong { color: var(--amber); font-weight: 600; }
+.tutor-chat__refs header span {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--ink-3);
+}
+.tutor-chat__refs ul { margin: 0; padding-left: 1.05rem; list-style: disc; }
+.tutor-chat__refs a { color: #9ec5ff; text-decoration: none; border-bottom: 1px dotted rgba(158, 197, 255, 0.4); }
+.tutor-chat__refs a:hover { color: #c8defc; }

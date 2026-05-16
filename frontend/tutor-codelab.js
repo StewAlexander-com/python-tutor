@@ -114,6 +114,34 @@
     return `<div class="codelab__runline">${dot}${meta}</div>${stdout}${stderr}`;
   }
 
+  function renderDocs(docs) {
+    if (!docs || !Array.isArray(docs.references) || !docs.references.length) {
+      if (docs && docs.online && !docs.online_ok && docs.note) {
+        return `<p class="codelab__docs-note">${escapeHtml(docs.note)}</p>`;
+      }
+      return '';
+    }
+    const statusLabel = docs.online
+      ? (docs.online_ok ? 'verified live' : 'offline · unverified')
+      : 'offline';
+    const items = docs.references.map((r) => {
+      const url = String(r.url || '');
+      const label = escapeHtml(r.label || url);
+      return `<li><a class="codelab__doc-link" href="${escapeHtml(url)}"
+        target="_blank" rel="noopener noreferrer">${label}</a></li>`;
+    }).join('');
+    const note = docs.note ? `<p class="codelab__docs-note">${escapeHtml(docs.note)}</p>` : '';
+    return `
+      <section class="codelab__docs" aria-label="Reference material">
+        <header class="codelab__docs-head">
+          <strong>References</strong>
+          <span class="codelab__docs-status">${escapeHtml(statusLabel)}</span>
+        </header>
+        <ul class="codelab__docs-list">${items}</ul>
+        ${note}
+      </section>`;
+  }
+
   function renderEvaluation(evalResp) {
     if (!evalResp) return '';
     const verdict = (evalResp.assessment || 'needs_work').replace('_', ' ');
@@ -121,6 +149,7 @@
     const next = evalResp.next_step
       ? `<p class="codelab__next"><strong>Next step:</strong> ${escapeHtml(evalResp.next_step)}</p>`
       : '';
+    const docs = renderDocs(evalResp.docs);
     return `
       <article class="codelab__feedback" aria-live="polite">
         <header class="codelab__verdict-row">
@@ -129,6 +158,7 @@
         </header>
         <div class="codelab__body">${renderMarkdownish(evalResp.feedback || '')}</div>
         ${next}
+        ${docs}
       </article>`;
   }
 
