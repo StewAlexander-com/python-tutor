@@ -91,16 +91,43 @@ and floating "Ask tutor" panel.
 > the daemon, pulling the model, or launching the app are all opt-in y/N
 > prompts.** Press Enter and nothing changes on your host.
 
-### Unattended install
+Run `./install.sh --help` or `./run.sh --help` for every option. The most
+common shapes:
 
 ```bash
-TUTOR_NONINTERACTIVE=1 ./install.sh      # answer "no" to everything
-PYTHON_TUTOR_ASSUME_YES=1 ./install.sh   # answer "yes" to everything (trusted hosts only)
-TUTOR_SKIP_OLLAMA=1 ./install.sh         # skip all Ollama probes
+./install.sh --yes               # trusted host: install Ollama, pull model, launch
+./install.sh --noninteractive    # CI: never prompt, default everything to "no"
+./install.sh --skip-ollama       # set up Python only; skip every Ollama probe
+./install.sh --model llama3.1:8b # use a different model than gemma3:4b
+./run.sh --port 8042             # choose a different port
+./run.sh --open-browser          # open the URL once /api/health is green
 ```
 
-Full list of env vars and the design rationale behind the two-script flow:
+The classic env vars (`TUTOR_NONINTERACTIVE`, `PYTHON_TUTOR_ASSUME_YES`,
+`TUTOR_SKIP_OLLAMA`, `TUTOR_MODEL`, `TUTOR_PORT`, …) still work — the flags
+are sugar on top of them.
+
+Full env-var list and design rationale:
 [`docs/install-runtime-workflow.md`](docs/install-runtime-workflow.md).
+
+---
+
+## Install reliability
+
+`install.sh` and `run.sh` are designed so the obvious failures fail
+*loudly* with a concrete next step. The most common ones:
+
+| Symptom                                       | What to do                                      |
+| --------------------------------------------- | ----------------------------------------------- |
+| "Python 3.10+ is required and was not found"  | `brew install python@3.12` / `apt install python3.12` and re-run. |
+| `pip install` fails on DNS / proxy / pypi     | The script detects this and prints offline/proxy/wheelhouse recipes. See [install-audit.md](docs/install-audit.md#pip-install-fails-on-a-network-you-dont-control). |
+| "Port 8001 is already in use"                 | `./run.sh --port 8002` (probe uses `/dev/tcp`, no `lsof` needed). |
+| Ollama installed but daemon down on `:11434`  | Answer `y` to "Start `ollama serve` now?" or run it yourself in another Terminal. |
+| `gh repo clone` fails with auth error         | `gh auth status` → `gh auth login`. Public clone via HTTPS also works. |
+| Repo was moved after install -> "venv broken" | The script auto-rebuilds. Virtualenvs hard-code their own path; relocating is unsupported by Python itself. |
+
+Detailed runbook and the audit that produced these mitigations:
+[`docs/install-audit.md`](docs/install-audit.md).
 
 ---
 
@@ -181,6 +208,7 @@ safety scan over the curriculum, and a Markdown link sanity check. See
 - [Evaluation](docs/evaluation.md)
 - [Roadmap](docs/roadmap.md)
 - [Install & runtime workflow](docs/install-runtime-workflow.md)
+- [Install reliability audit](docs/install-audit.md)
 - [Python foundations curriculum](curriculum/python-foundations.md)
 - [Tutor system prompt](prompts/tutor-system-prompt.md)
 - [ADR 0001 — offline-first local LLM](adr/0001-offline-first-local-llm.md)
