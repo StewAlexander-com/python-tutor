@@ -82,6 +82,26 @@ def test_index_html_references_chat_assets() -> None:
     assert 'meta name="tutor-backend"' in index
 
 
+def test_chat_panel_hidden_attribute_works() -> None:
+    """Regression: the panel's `display: flex` overrides the UA stylesheet's
+    `[hidden] { display: none }` rule because they share specificity, so
+    clicking the close X never actually hid the panel. The CSS must re-assert
+    `display: none` for the hidden state."""
+    css = (FRONTEND_DIR / "tutor-chat.css").read_text(encoding="utf-8")
+    assert re.search(
+        r"\.tutor-chat__panel\[hidden\]\s*\{[^}]*display\s*:\s*none",
+        css,
+    ), "tutor-chat.css must re-assert display:none for .tutor-chat__panel[hidden]"
+
+
+def test_chat_close_button_is_wired() -> None:
+    """The close X must have a click handler that calls toggle(false, ...)."""
+    js = (FRONTEND_DIR / "tutor-chat.js").read_text(encoding="utf-8")
+    assert "tutorChatClose" in js
+    assert "closeBtn.addEventListener('click'" in js or 'closeBtn.addEventListener("click"' in js
+    assert "toggle(false" in js
+
+
 def test_chat_js_posts_to_api_chat() -> None:
     js = (FRONTEND_DIR / "tutor-chat.js").read_text(encoding="utf-8")
     # The module must POST to /api/chat with a JSON body containing `messages`.

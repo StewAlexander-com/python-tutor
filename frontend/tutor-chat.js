@@ -119,7 +119,7 @@
     root.id = 'tutorChatRoot';
     root.className = 'tutor-chat';
     root.innerHTML = `
-      <button class="tutor-chat__fab" id="tutorChatFab" aria-label="Open tutor chat" aria-expanded="false" aria-controls="tutorChatPanel">
+      <button type="button" class="tutor-chat__fab" id="tutorChatFab" aria-label="Open tutor chat" aria-expanded="false" aria-controls="tutorChatPanel">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
           <path d="M5 5h14a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 4V7a2 2 0 0 1 2-2Z"
                 fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -134,8 +134,8 @@
             <h2 class="tutor-chat__title">Ask about Python</h2>
             <p class="tutor-chat__sub" id="tutorChatSub">Connecting…</p>
           </div>
-          <button class="tutor-chat__close" id="tutorChatClose" aria-label="Close tutor chat">
-            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <button type="button" class="tutor-chat__close" id="tutorChatClose" aria-label="Close tutor chat" title="Close tutor chat">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" pointer-events="none">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             </svg>
           </button>
@@ -174,8 +174,15 @@
     const banner = root.querySelector('#tutorChatBanner');
     const sendBtn = root.querySelector('#tutorChatSend');
 
-    fab.addEventListener('click', () => toggle(true, { panel, fab, input }));
-    closeBtn.addEventListener('click', () => toggle(false, { panel, fab, input }));
+    fab.addEventListener('click', (e) => {
+      e.preventDefault();
+      toggle(true, { panel, fab, input });
+    });
+    closeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      toggle(false, { panel, fab, input });
+    });
     resetBtn.addEventListener('click', () => {
       state.history = [];
       renderLog(log);
