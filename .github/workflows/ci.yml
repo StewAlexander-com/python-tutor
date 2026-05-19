@@ -133,3 +133,14 @@ jobs:
           else
             echo "scripts/smoke_prompts.sh missing; skipping prompt smoke"
           fi
+
+      - name: Smoke-test CLI flags (--help, --no-launch, port-in-use)
+        env:
+          TUTOR_SKIP_OLLAMA: "1"
+        run: |
+          if [ -f scripts/smoke_flags.sh ]; then
+            chmod +x scripts/smoke_flags.sh
+            ./scripts/smoke_flags.sh
+          else
+            echo "scripts/smoke_flags.sh missing; skipping flags smoke"
+          fi

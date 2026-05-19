@@ -275,7 +275,68 @@ Unattended:
 ```bash
 # Pre-approved: install Ollama, start it, pull the model, exec run.sh.
 PYTHON_TUTOR_ASSUME_YES=1 ./install.sh
+# (or, equivalently:)
+./install.sh --yes
 
 # CI: do not touch Ollama at all.
 TUTOR_SKIP_OLLAMA=1 TUTOR_NONINTERACTIVE=1 ./install.sh
+./install.sh --noninteractive --skip-ollama --skip-model-pull --no-launch
 ```
+
+## CLI flags
+
+Both scripts now accept flags in addition to env vars. Run
+`./install.sh --help` or `./run.sh --help` for the full list. The flags
+are sugar over the same env vars; existing CI invocations keep working.
+
+| Flag                       | Equivalent env var               |
+| -------------------------- | -------------------------------- |
+| `-y`, `--yes`              | `PYTHON_TUTOR_ASSUME_YES=1`      |
+| `-n`, `--noninteractive`   | `TUTOR_NONINTERACTIVE=1`         |
+| `--no-launch`              | (install) suppresses launch prompt; (run) preflight-only dry run |
+| `--skip-ollama`            | `TUTOR_SKIP_OLLAMA=1`            |
+| `--skip-model-pull`        | `TUTOR_SKIP_MODEL_PULL=1`        |
+| `--model TAG`              | `TUTOR_MODEL=TAG`                |
+| `--host ADDR` (run only)   | `TUTOR_HOST=ADDR`                |
+| `--port N` (run only)      | `TUTOR_PORT=N`                   |
+| `--open-browser` (run only) | (no env equivalent; opt-in)     |
+
+Exit codes:
+
+- `install.sh`: `0` ok, `1` Python too old/missing, `2` pip failed, `3`
+  invalid CLI args.
+- `run.sh`: `0` ok (server started, or `--no-launch` dry-run), `3`
+  invalid CLI args, `4` port already in use.
+
+## Offline / restricted networks
+
+`install.sh` calls `pip install` against PyPI by default. When the host
+cannot reach `pypi.org` (corporate proxy, air-gapped lab, flaky DNS) the
+script captures pip's stderr and prints actionable hints. Three
+documented paths:
+
+1. **Behind a proxy:** export `HTTPS_PROXY` / `HTTP_PROXY` and re-run.
+2. **Internal mirror:** `PIP_INDEX_URL=https://pypi.internal/simple ./install.sh`.
+3. **Air-gapped:** build a wheelhouse on a connected host, then point
+   pip at the local directory and skip the index:
+
+   ```bash
+   # on a connected host:
+   pip download -d wheelhouse -r backend/requirements-dev.txt
+   # rsync wheelhouse/ to the target, then:
+   PIP_NO_INDEX=1 PIP_FIND_LINKS="$PWD/wheelhouse" ./install.sh
+   ```
+
+The detailed audit (failure modes seen in real installs and the
+mitigations now in the scripts) lives at
+[`install-audit.md`](install-audit.md).
+
+## Venv path sensitivity
+
+Python virtualenvs hard-code their absolute path inside
+`pyvenv.cfg` and the shebangs of `bin/*`. Moving or copying a venv
+silently breaks it. `install.sh` writes the repo path to
+`backend/.venv/.tutor_repo_root` and on subsequent runs rebuilds the
+venv if the repo has moved. The takeaway: choose your install location
+before running `./install.sh`. If you must move the repo, re-run
+`./install.sh` from the new location.
