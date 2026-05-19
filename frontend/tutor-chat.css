@@ -46,8 +46,14 @@
   border-radius: var(--r-lg);
   box-shadow: var(--shadow-pop);
   overflow: hidden;
-  z-index: 60;
+  z-index: 61;
 }
+
+/* The class above sets display:flex, which has the same specificity as the UA
+   rule [hidden] { display: none }. Author rules win the cascade, so the
+   hidden attribute would otherwise be a no-op and the panel would never
+   close. Re-assert display:none for the hidden state. */
+.tutor-chat__panel[hidden] { display: none; }
 
 @media (max-width: 559px) {
   .tutor-chat__panel {
