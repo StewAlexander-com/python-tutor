@@ -41,6 +41,63 @@ laptop.
 
 ---
 
+## A quick look
+
+A 30-second tour of the UI, lab, and tutor. Click any image to enlarge.
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/assets/screenshots/01-home.png">
+        <img src="docs/assets/screenshots/01-home.png" alt="Landing page with two learning paths: 'I'm new to Python' and 'I need a quick reference'." />
+      </a>
+      <sub><b>Land.</b> Two paths — beginner or quick reference. The "Ask tutor" button is always one tap away.</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/assets/screenshots/02-lesson-browser.png">
+        <img src="docs/assets/screenshots/02-lesson-browser.png" alt="Beginner-path browser showing 46 sections starting with Variables &amp; Types, Numbers &amp; Math, Strings." />
+      </a>
+      <sub><b>Browse.</b> 46 sections, filterable, grouped by theme. Read in order or jump straight to a topic.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/assets/screenshots/03-section-view.png">
+        <img src="docs/assets/screenshots/03-section-view.png" alt="Variables &amp; Types lesson in Teaching mode, opened to the 'Big picture' explainer." />
+      </a>
+      <sub><b>Read.</b> Each section explains the <i>why</i> first, then the syntax. Switch between Teaching and Quick reference modes.</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/assets/screenshots/04-code-lab-run.png">
+        <img src="docs/assets/screenshots/04-code-lab-run.png" alt="Inline code lab with a small Python program, the Run button, and a green 'Ran cleanly' stdout panel." />
+      </a>
+      <sub><b>Run.</b> Edit the snippet, press <b>Run</b>, see real stdout/stderr and exit code — actually executed, not faked.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/assets/screenshots/05-evaluate-feedback.png">
+        <img src="docs/assets/screenshots/05-evaluate-feedback.png" alt="Tutor evaluation: 'On track' verdict, prose feedback, a Next step, and official Python docs references." />
+      </a>
+      <sub><b>Evaluate.</b> The tutor sees your code <i>and</i> what it actually printed, gives a verdict, a next step, and links to official docs.</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/assets/screenshots/06-tutor-chat.png">
+        <img src="docs/assets/screenshots/06-tutor-chat.png" alt="Floating chat panel mid-conversation about why Python variables are not typed, with a small code example in the reply." />
+      </a>
+      <sub><b>Ask.</b> A floating chat panel for free-form questions — your code and lesson context come along for the ride.</sub>
+    </td>
+  </tr>
+</table>
+
+> The screenshots above are produced by
+> [`scripts/capture-screenshots.js`](scripts/capture-screenshots.js) with
+> deterministic UI fixtures so they stay reproducible without Ollama running.
+> Real model output will read differently — for the look of the UI, they're
+> faithful. See [`docs/assets/screenshots/README.md`](docs/assets/screenshots/README.md).
+
+---
+
 ## How it works
 
 ```mermaid
