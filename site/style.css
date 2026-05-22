@@ -541,6 +541,111 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   display: flex; gap: 12px; flex-wrap: wrap;
 }
 
+/* numbered step cards */
+.start__steps {
+  margin-top: 28px;
+  display: grid;
+  gap: 18px;
+}
+.start__step {
+  background: var(--bg-1);
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-lg);
+  padding: 20px 22px 22px;
+}
+.start__step-head {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 6px;
+}
+.start__step-num {
+  width: 28px; height: 28px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  background: var(--amber);
+  color: #1a1206;
+  font-weight: 800; font-size: 13px;
+  flex-shrink: 0;
+}
+.start__step-title {
+  font-size: 1.05rem;
+  color: var(--ink-0);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.start__step-sub {
+  color: var(--ink-2);
+  font-size: 0.95rem;
+  margin: 4px 0 12px;
+}
+.start__step-sub code {
+  font-family: var(--font-mono);
+  background: var(--bg-2);
+  padding: 1px 6px; border-radius: 4px;
+  color: var(--ink-1); font-size: 0.9em;
+}
+.start__step-sub strong { color: var(--ink-0); }
+.start__step-sub--muted { color: var(--ink-3); margin-top: 10px; margin-bottom: 0; }
+
+/* code block with copy button */
+.start__code--with-copy {
+  position: relative;
+}
+.copy-btn {
+  position: absolute;
+  top: 10px; right: 10px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--ink-1);
+  background: var(--bg-1);
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  transition: background 140ms var(--ease), color 140ms var(--ease), border-color 140ms var(--ease);
+}
+.copy-btn:hover {
+  background: var(--bg-2); color: var(--ink-0);
+  border-color: rgba(232,161,59,0.3);
+}
+.copy-btn.is-copied {
+  background: var(--amber-wash);
+  color: var(--amber-soft);
+  border-color: rgba(232,161,59,0.4);
+}
+
+/* more / details disclosure */
+.start__more {
+  margin-top: 22px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+  background: var(--bg-1);
+  padding: 14px 18px;
+}
+.start__more > summary {
+  cursor: pointer;
+  color: var(--ink-0);
+  font-weight: 600;
+  font-size: 0.95rem;
+  list-style: none;
+}
+.start__more > summary::-webkit-details-marker { display: none; }
+.start__more > summary::before {
+  content: "▸ ";
+  color: var(--amber);
+  display: inline-block;
+  margin-right: 6px;
+  transition: transform 140ms var(--ease);
+}
+.start__more[open] > summary::before { content: "▾ "; }
+.start__more > .start__code { margin-top: 12px; }
+
+/* links row beneath the steps */
+.start__links {
+  margin-top: 24px;
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+
 /* ============ FOOT ============ */
 .foot {
   border-top: 1px solid var(--line-1);

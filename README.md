@@ -7,6 +7,10 @@ Lessons, an interactive code lab, and an AI mentor — powered by a local LLM
 Python, write code, get feedback. Your code and your questions never leave the
 laptop.
 
+> **Start here:** <https://stewalexander-com.github.io/python-tutor/> — the
+> project's GitHub Pages start page with the three-command install and a
+> 30-second visual tour. Source for the page lives in [`site/`](site/).
+
 ```
 ┌─────────────────────────────────────────────────────────┐
 │  Read a lesson  →  Run code in the lab  →  Ask tutor    │
@@ -41,12 +45,22 @@ laptop.
 
 ---
 
-## Hero website
+## Hero website / start page
 
-A small static landing page lives at [`site/`](site/) — dark / amber
-aesthetic, the local-first loop in four steps, a simplified product
-mockup, and links straight to the two-command install. Useful for
-sharing the project without asking people to clone the repo first.
+The project's **start page** is published on GitHub Pages:
+
+**<https://stewalexander-com.github.io/python-tutor/>**
+
+It's the link to share with anyone who hasn't cloned the repo yet: dark /
+amber aesthetic, the local-first loop in four steps, the three-command
+install with copy buttons, and links to the repo, README, and issues.
+
+Source lives in [`site/`](site/) and is deployed by
+[`.github/workflows/pages.yml`](.github/workflows/pages.yml) on every push
+to `main` that touches `site/`. The Pages workflow runs independently of
+the regular CI workflow.
+
+To preview locally (pure static HTML + CSS, no build step):
 
 ```bash
 cd site
@@ -54,8 +68,7 @@ python3 -m http.server 8080
 # open http://localhost:8080/
 ```
 
-It's pure static HTML + CSS, no build step. See
-[`site/README.md`](site/README.md) for what's in it and the asset layout.
+See [`site/README.md`](site/README.md) for what's in it and the asset layout.
 
 ---
 
