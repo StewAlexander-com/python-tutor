@@ -133,7 +133,9 @@ need "git clone https://github.com/StewAlexander-com/python-tutor.git"
 need "cd python-tutor"
 need "./install.sh"
 need "./run.sh --open-browser"
-ok "clone / install / run commands present in start section"
+need ".\\install.ps1"
+need ".\\run.ps1 -OpenBrowser"
+ok "clone / install / run commands present (macOS/Linux + Windows) in start section"
 
 # Quick links to repo, README, and issues from the start page.
 need 'href="https://github.com/StewAlexander-com/python-tutor"'
@@ -145,8 +147,10 @@ ok "repo / README / issues links present"
 need 'class="copy-btn"'
 need 'data-copy-target="cmd-clone"'
 need 'data-copy-target="cmd-install"'
+need 'data-copy-target="cmd-install-win"'
 need 'data-copy-target="cmd-run"'
-ok "copy-to-clipboard buttons wired up"
+need 'data-copy-target="cmd-run-win"'
+ok "copy-to-clipboard buttons wired up (incl. Windows variants)"
 
 # Every local href/src under site/ must resolve to a real file.
 # (We only check ./relative paths — external URLs are skipped.)

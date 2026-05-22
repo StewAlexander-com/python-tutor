@@ -586,6 +586,19 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .start__step-sub strong { color: var(--ink-0); }
 .start__step-sub--muted { color: var(--ink-3); margin-top: 10px; margin-bottom: 0; }
 
+/* per-OS label above paired code blocks (macOS/Linux vs Windows) */
+.start__os-label {
+  margin-top: 14px;
+  margin-bottom: 6px;
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+.start__os-label:first-child { margin-top: 0; }
+
 /* code block with copy button */
 .start__code--with-copy {
   position: relative;
