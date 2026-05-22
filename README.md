@@ -163,7 +163,9 @@ never claims code works without running it.
 
 ## Quick start
 
-Two commands. macOS or Linux. Python 3.10+.
+Two commands. macOS, Linux, or Windows. Python 3.10+.
+
+**macOS / Linux**
 
 ```bash
 gh repo clone StewAlexander-com/python-tutor
@@ -172,23 +174,49 @@ cd python-tutor
 ./run.sh            # serves UI + API at http://localhost:8001/
 ```
 
+**Windows (PowerShell 5.1+ or PowerShell 7)**
+
+```powershell
+gh repo clone StewAlexander-com/python-tutor
+cd python-tutor
+.\install.ps1       # sets up venv, then prompts y/N for any host-level step
+.\run.ps1           # serves UI + API at http://localhost:8001/
+```
+
+> If PowerShell blocks the script with an execution-policy error, run it once
+> with: `powershell -ExecutionPolicy Bypass -File .\install.ps1` (or set the
+> per-user policy: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`).
+
 Open <http://localhost:8001/> — you'll land on the lesson list with the code lab
 and floating "Ask tutor" panel.
 
-> `install.sh` only touches the repo on its own. **Installing Ollama, starting
-> the daemon, pulling the model, or launching the app are all opt-in y/N
-> prompts.** Press Enter and nothing changes on your host.
+> `install.sh` / `install.ps1` only touches the repo on its own. **Installing
+> Ollama, starting the daemon, pulling the model, or launching the app are all
+> opt-in y/N prompts.** Press Enter and nothing changes on your host. On
+> Windows the Ollama install path uses `winget` (App Installer) when you say
+> yes; otherwise a manual <https://ollama.com/download/windows> link is shown.
 
-Run `./install.sh --help` or `./run.sh --help` for every option. The most
-common shapes:
+Run `./install.sh --help` or `.\install.ps1 -Help` (and the matching `run`
+script) for every option. The most common shapes:
 
 ```bash
+# macOS / Linux
 ./install.sh --yes               # trusted host: install Ollama, pull model, launch
 ./install.sh --noninteractive    # CI: never prompt, default everything to "no"
 ./install.sh --skip-ollama       # set up Python only; skip every Ollama probe
 ./install.sh --model llama3.1:8b # use a different model than gemma3:4b
 ./run.sh --port 8042             # choose a different port
 ./run.sh --open-browser          # open the URL once /api/health is green
+```
+
+```powershell
+# Windows
+.\install.ps1 -Yes                  # trusted host: install Ollama, pull model, launch
+.\install.ps1 -NonInteractive       # CI: never prompt, default everything to "no"
+.\install.ps1 -SkipOllama           # set up Python only; skip every Ollama probe
+.\install.ps1 -Model llama3.1:8b    # use a different model than gemma3:4b
+.\run.ps1 -Port 8042                # choose a different port
+.\run.ps1 -OpenBrowser              # open the URL once /api/health is green
 ```
 
 The classic env vars (`TUTOR_NONINTERACTIVE`, `PYTHON_TUTOR_ASSUME_YES`,
@@ -207,7 +235,8 @@ Full env-var list and design rationale:
 
 | Symptom                                       | What to do                                      |
 | --------------------------------------------- | ----------------------------------------------- |
-| "Python 3.10+ is required and was not found"  | `brew install python@3.12` / `apt install python3.12` and re-run. |
+| "Python 3.10+ is required and was not found"  | `brew install python@3.12` / `apt install python3.12` / `winget install -e --id Python.Python.3.12` and re-run. |
+| Windows: "running scripts is disabled on this system" | One-shot: `powershell -ExecutionPolicy Bypass -File .\install.ps1`. Persistent (recommended): `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`. |
 | `pip install` fails on DNS / proxy / pypi     | The script detects this and prints offline/proxy/wheelhouse recipes. See [install-audit.md](docs/install-audit.md#pip-install-fails-on-a-network-you-dont-control). |
 | "Port 8001 is already in use"                 | `./run.sh --port 8002` (probe uses `/dev/tcp`, no `lsof` needed). |
 | Ollama installed but daemon down on `:11434`  | Answer `y` to "Start `ollama serve` now?" or run it yourself in another Terminal. |

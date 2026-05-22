@@ -153,3 +153,111 @@ jobs:
           else
             echo "scripts/smoke_flags.sh missing; skipping flags smoke"
           fi
+
+  windows:
+    name: Windows PowerShell install + run smoke
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: PowerShell syntax check (install.ps1 / run.ps1)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          foreach ($f in @('install.ps1','run.ps1')) {
+            if (-not (Test-Path $f)) { throw "missing $f" }
+            $tokens = $null; $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $f), [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors -and $parseErrors.Count -gt 0) {
+              $parseErrors | ForEach-Object { Write-Host $_ }
+              throw "parse errors in $f"
+            }
+            Write-Host "ok  $f"
+          }
+
+      - name: Help text (-Help) for both scripts
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .\install.ps1 -Help | Select-Object -First 5
+          .\run.ps1     -Help | Select-Object -First 5
+
+      - name: Smoke-test install.ps1 (noninteractive, skip Ollama, skip pull)
+        shell: pwsh
+        env:
+          TUTOR_SKIP_OLLAMA: "1"
+          TUTOR_SKIP_MODEL_PULL: "1"
+          TUTOR_NONINTERACTIVE: "1"
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .\install.ps1 -NoLaunch
+          if (-not (Test-Path 'backend\.venv\Scripts\python.exe')) {
+            throw 'venv was not created'
+          }
+          & 'backend\.venv\Scripts\python.exe' -c "import fastapi, uvicorn, httpx, pydantic; print('imports ok')"
+
+      - name: Smoke-test run.ps1 -NoLaunch (preflight only, skip Ollama)
+        shell: pwsh
+        env:
+          TUTOR_SKIP_OLLAMA: "1"
+          TUTOR_PORT: "8801"
+        run: |
+          $ErrorActionPreference = 'Stop'
+          .\run.ps1 -NoLaunch -SkipOllama -Port 8801
+
+      - name: Smoke-test run.ps1 actually serves /api/health (no Ollama)
+        shell: pwsh
+        env:
+          TUTOR_SKIP_OLLAMA: "1"
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $job = Start-Job -ScriptBlock {
+            param($root)
+            Set-Location $root
+            $env:TUTOR_SKIP_OLLAMA = '1'
+            & .\run.ps1 -SkipOllama -Port 8802
+          } -ArgumentList (Get-Location).Path
+          try {
+            $ok = $false
+            for ($i = 0; $i -lt 60; $i++) {
+              Start-Sleep -Seconds 1
+              try {
+                $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8802/api/health' `
+                  -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop
+                if ($r.StatusCode -eq 200) { $ok = $true; break }
+              } catch { }
+            }
+            if (-not $ok) {
+              Write-Host '--- background job output ---'
+              Receive-Job $job
+              throw '/api/health did not return 200 within 60s'
+            }
+            Write-Host 'ok  /api/health -> 200'
+          } finally {
+            Stop-Job $job -ErrorAction SilentlyContinue
+            Remove-Job $job -Force -ErrorAction SilentlyContinue
+          }
+
+      - name: Reject unknown parameter
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $err = $null
+          try {
+            & .\install.ps1 -DoesNotExist 2>&1 | Out-Null
+          } catch {
+            $err = $_
+          }
+          # PowerShell raises a ParameterBindingException before the script
+          # body runs; either $err is set or the call wrote a non-terminating
+          # error to $Error[0].
+          if (-not $err -and -not $Error[0]) {
+            throw 'unknown parameter should have been rejected'
+          }
+          Write-Host 'ok  unknown parameter rejected'

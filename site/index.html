@@ -54,7 +54,7 @@
     "url": "https://stewalexander-com.github.io/python-tutor/",
     "image": "https://stewalexander-com.github.io/python-tutor/assets/og-image.png",
     "applicationCategory": "EducationalApplication",
-    "operatingSystem": "macOS, Linux",
+    "operatingSystem": "macOS, Linux, Windows",
     "license": "https://opensource.org/licenses/MIT",
     "codeRepository": "https://github.com/StewAlexander-com/python-tutor",
     "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
@@ -287,7 +287,7 @@
         <p class="section__lede">
           Three short commands and you're at
           <code>http://localhost:8001/</code>.
-          macOS or Linux. Python 3.10+.
+          macOS, Linux, or Windows. Python 3.10+.
         </p>
 
         <ol class="start__steps">
@@ -315,9 +315,15 @@ cd python-tutor</code></pre>
               <strong>opt-in y/N prompt</strong> — press Enter and nothing
               changes on your host.
             </p>
+            <div class="start__os-label">macOS / Linux</div>
             <div class="start__code start__code--with-copy">
               <pre><code id="cmd-install">./install.sh</code></pre>
-              <button class="copy-btn" type="button" data-copy-target="cmd-install" aria-label="Copy install command">Copy</button>
+              <button class="copy-btn" type="button" data-copy-target="cmd-install" aria-label="Copy install command (macOS / Linux)">Copy</button>
+            </div>
+            <div class="start__os-label">Windows (PowerShell)</div>
+            <div class="start__code start__code--with-copy">
+              <pre><code id="cmd-install-win">.\install.ps1</code></pre>
+              <button class="copy-btn" type="button" data-copy-target="cmd-install-win" aria-label="Copy install command (Windows)">Copy</button>
             </div>
           </li>
 
@@ -326,19 +332,26 @@ cd python-tutor</code></pre>
               <span class="start__step-num">3</span>
               <h3 class="start__step-title">Run &amp; open in your browser</h3>
             </div>
-            <p class="start__step-sub"><code>--open-browser</code> pops the tab once <code>/api/health</code> is green.</p>
+            <p class="start__step-sub"><code>--open-browser</code> / <code>-OpenBrowser</code> pops the tab once <code>/api/health</code> is green.</p>
+            <div class="start__os-label">macOS / Linux</div>
             <div class="start__code start__code--with-copy">
               <pre><code id="cmd-run">./run.sh --open-browser</code></pre>
-              <button class="copy-btn" type="button" data-copy-target="cmd-run" aria-label="Copy run command">Copy</button>
+              <button class="copy-btn" type="button" data-copy-target="cmd-run" aria-label="Copy run command (macOS / Linux)">Copy</button>
+            </div>
+            <div class="start__os-label">Windows (PowerShell)</div>
+            <div class="start__code start__code--with-copy">
+              <pre><code id="cmd-run-win">.\run.ps1 -OpenBrowser</code></pre>
+              <button class="copy-btn" type="button" data-copy-target="cmd-run-win" aria-label="Copy run command (Windows)">Copy</button>
             </div>
             <p class="start__step-sub start__step-sub--muted">
-              Or just <code>./run.sh</code> and open <code>http://localhost:8001/</code> yourself.
+              Or just <code>./run.sh</code> / <code>.\run.ps1</code> and open <code>http://localhost:8001/</code> yourself.
             </p>
           </li>
         </ol>
 
         <details class="start__more">
           <summary>Common variations</summary>
+          <div class="start__os-label">macOS / Linux</div>
           <div class="start__code start__code--with-copy">
             <pre><code id="cmd-more"><span class="t-com"># trusted host: install Ollama, pull model, launch — no prompts</span>
 ./install.sh --yes
@@ -352,7 +365,26 @@ cd python-tutor</code></pre>
 <span class="t-com"># pick a different model or port</span>
 ./install.sh --model llama3.1:8b
 ./run.sh --port 8042</code></pre>
-            <button class="copy-btn" type="button" data-copy-target="cmd-more" aria-label="Copy variation commands">Copy</button>
+            <button class="copy-btn" type="button" data-copy-target="cmd-more" aria-label="Copy variation commands (macOS / Linux)">Copy</button>
+          </div>
+          <div class="start__os-label">Windows (PowerShell)</div>
+          <div class="start__code start__code--with-copy">
+            <pre><code id="cmd-more-win"><span class="t-com"># trusted host: install Ollama (via winget), pull model, launch</span>
+.\install.ps1 -Yes
+
+<span class="t-com"># CI / air-gapped: never prompt, default everything to "no"</span>
+.\install.ps1 -NonInteractive
+
+<span class="t-com"># Python-only setup (skip every Ollama probe)</span>
+.\install.ps1 -SkipOllama
+
+<span class="t-com"># pick a different model or port</span>
+.\install.ps1 -Model llama3.1:8b
+.\run.ps1 -Port 8042
+
+<span class="t-com"># if PowerShell blocks the script:</span>
+powershell -ExecutionPolicy Bypass -File .\install.ps1</code></pre>
+            <button class="copy-btn" type="button" data-copy-target="cmd-more-win" aria-label="Copy variation commands (Windows)">Copy</button>
           </div>
         </details>
 
