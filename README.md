@@ -41,6 +41,24 @@ laptop.
 
 ---
 
+## Hero website
+
+A small static landing page lives at [`site/`](site/) — dark / amber
+aesthetic, the local-first loop in four steps, a simplified product
+mockup, and links straight to the two-command install. Useful for
+sharing the project without asking people to clone the repo first.
+
+```bash
+cd site
+python3 -m http.server 8080
+# open http://localhost:8080/
+```
+
+It's pure static HTML + CSS, no build step. See
+[`site/README.md`](site/README.md) for what's in it and the asset layout.
+
+---
+
 ## A quick look
 
 A 30-second tour of the UI, lab, and tutor. Click any image to enlarge.
