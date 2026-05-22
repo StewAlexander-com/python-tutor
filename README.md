@@ -45,7 +45,7 @@ laptop.
 
 ---
 
-## Hero website / start page
+## Project website / start page
 
 The project's **start page** is published on GitHub Pages:
 
