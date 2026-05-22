@@ -75,6 +75,15 @@ jobs:
           sys.exit(1 if errors else 0)
           "
 
+      - name: Check hero landing site
+        run: |
+          if [ -f scripts/check_site.sh ]; then
+            chmod +x scripts/check_site.sh
+            ./scripts/check_site.sh
+          else
+            echo "scripts/check_site.sh missing; skipping"
+          fi
+
   scripts:
     name: Shell script lint + smoke
     runs-on: ubuntu-latest

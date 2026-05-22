@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Python Tutor — Private Python practice with a local AI tutor</title>
+  <meta name="description" content="A private, offline Python tutor that runs entirely on your own machine. Lessons, an interactive code lab, and a local AI mentor — no accounts, no cloud, no telemetry." />
+  <meta name="theme-color" content="#0c0c0d" />
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <link rel="canonical" href="https://github.com/StewAlexander-com/python-tutor" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Python Tutor — Private Python practice with a local AI tutor" />
+  <meta property="og:description" content="Lessons, a real code lab, and an AI mentor — all on your laptop. No accounts. No cloud. No telemetry." />
+  <meta property="og:image" content="./assets/og-image.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://github.com/StewAlexander-com/python-tutor" />
+
+  <!-- Twitter / X -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Python Tutor — Private Python practice with a local AI tutor" />
+  <meta name="twitter:description" content="Lessons, a real code lab, and an AI mentor — all on your laptop. No accounts. No cloud. No telemetry." />
+  <meta name="twitter:image" content="./assets/og-image.png" />
+
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Python Tutor home">
+      <svg class="brand__mark" width="28" height="28" viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="6" y="6" width="52" height="52" rx="12" fill="#1a1a1b"/>
+        <rect x="6" y="6" width="52" height="52" rx="12" fill="none" stroke="#2a2a2c" stroke-width="1"/>
+        <path d="M18 22 L26 32 L18 42" fill="none" stroke="#e8a13b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <rect x="31" y="39" width="14" height="3.5" rx="1" fill="#e8a13b"/>
+      </svg>
+      <span class="brand__name">Python Tutor<span class="brand__dot">.</span></span>
+    </a>
+    <nav class="topbar__nav" aria-label="Primary">
+      <a class="topbar__link" href="#why">Why</a>
+      <a class="topbar__link" href="#loop">How it works</a>
+      <a class="topbar__link" href="#screens">See it</a>
+      <a class="topbar__link" href="#start">Start</a>
+    </nav>
+    <a class="btn btn--ghost topbar__cta" href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">
+      <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.34.96.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.45.11-3.03 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.8 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.58.23 2.74.11 3.03.73.81 1.18 1.84 1.18 3.1 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.05.78 2.12v3.14c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+      <span>Repo</span>
+    </a>
+  </header>
+
+  <main id="main">
+    <!-- ============ HERO ============ -->
+    <section id="top" class="hero">
+      <div class="hero__bg" aria-hidden="true"></div>
+      <div class="hero__inner">
+        <div class="hero__copy">
+          <div class="eyebrow">
+            <span class="dot" aria-hidden="true"></span>
+            <span>Local-first · Open source · MIT</span>
+          </div>
+          <h1 class="hero__title">
+            Private Python practice<br/>
+            <span class="accent">with a local AI tutor.</span>
+          </h1>
+          <p class="hero__lede">
+            Lessons, an interactive code lab, and a chat mentor — powered by a
+            local LLM (Gemma via Ollama). Your code and your questions
+            <strong>never leave your laptop</strong>.
+          </p>
+          <div class="hero__cta">
+            <a class="btn btn--primary" href="https://github.com/StewAlexander-com/python-tutor#quick-start" rel="noopener">
+              <span>Get started</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+            </a>
+            <a class="btn btn--ghost" href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">View on GitHub</a>
+          </div>
+          <ul class="hero__chips" aria-label="At a glance">
+            <li>No accounts</li>
+            <li>No cloud</li>
+            <li>No telemetry</li>
+            <li>Works on a plane</li>
+          </ul>
+        </div>
+
+        <!-- Simplified app mockup, evoking the real UI -->
+        <div class="hero__mock" role="img" aria-label="Python Tutor app preview: lesson, code lab with Run output, and floating tutor chat.">
+          <div class="mock">
+            <div class="mock__chrome">
+              <span class="mock__dot mock__dot--r"></span>
+              <span class="mock__dot mock__dot--y"></span>
+              <span class="mock__dot mock__dot--g"></span>
+              <span class="mock__url">localhost:8001</span>
+            </div>
+            <div class="mock__body">
+              <aside class="mock__side">
+                <div class="mock__side-title">Foundations</div>
+                <ul class="mock__list">
+                  <li class="is-active">Variables &amp; Types</li>
+                  <li>Numbers &amp; Math</li>
+                  <li>Strings</li>
+                  <li>Lists</li>
+                  <li>Dicts</li>
+                  <li class="is-muted">+ 41 more</li>
+                </ul>
+              </aside>
+              <section class="mock__main">
+                <h3 class="mock__h">Variables &amp; Types</h3>
+                <p class="mock__p">Names point at values. Values know their own type — variables don't.</p>
+                <div class="mock__lab">
+                  <div class="mock__lab-head">
+                    <span class="mock__tag">code lab</span>
+                    <span class="mock__run">▶ Run</span>
+                  </div>
+                  <pre class="mock__code"><span class="t-com"># try changing the value</span>
+<span class="t-fn">name</span> = <span class="t-str">"Ada"</span>
+<span class="t-fn">age</span>  = <span class="t-num">36</span>
+<span class="t-kw">print</span>(<span class="t-str">f"</span>{<span class="t-fn">name</span>}<span class="t-str"> is </span>{<span class="t-fn">age</span>}<span class="t-str">"</span>)</pre>
+                  <div class="mock__out">
+                    <span class="mock__ok">✓ Ran cleanly</span>
+                    <code>Ada is 36</code>
+                  </div>
+                </div>
+              </section>
+              <div class="mock__chat" aria-hidden="true">
+                <div class="mock__chat-head">
+                  <span class="mock__chat-title">Ask tutor</span>
+                  <span class="mock__chat-x">×</span>
+                </div>
+                <div class="mock__chat-body">
+                  <div class="mock__bubble mock__bubble--you">Why isn't <code>age</code> typed?</div>
+                  <div class="mock__bubble mock__bubble--bot">In Python, <strong>values</strong> carry the type; names are just labels you can point anywhere. <a class="mock__cite">docs.python.org →</a></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ WHY (useful / private / credible) ============ -->
+    <section id="why" class="rows">
+      <div class="rows__inner">
+        <h2 class="section__title">Built for learning, not for harvesting data.</h2>
+        <ul class="rows__list">
+          <li class="row">
+            <div class="row__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h10M4 17h16"/></svg>
+            </div>
+            <div class="row__text">
+              <h3>Useful</h3>
+              <p>A guided 46-section Python-foundations curriculum, an inline code lab that <em>actually runs</em> your code, and exercises with visible <em>and</em> hidden tests.</p>
+            </div>
+          </li>
+          <li class="row">
+            <div class="row__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            </div>
+            <div class="row__text">
+              <h3>Private</h3>
+              <p>The model runs on your machine via Ollama. No accounts, no cloud calls, no telemetry. Pull the plug — the UI keeps working.</p>
+            </div>
+          </li>
+          <li class="row">
+            <div class="row__icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l9 4-9 4-9-4 9-4z"/><path d="M3 10l9 4 9-4"/><path d="M3 14l9 4 9-4"/></svg>
+            </div>
+            <div class="row__text">
+              <h3>Credible</h3>
+              <p>The tutor cites only <strong>official Python docs</strong> from a curated allowlist. URLs are never invented by the LLM — they come from an in-repo map and are HEAD-checked when online.</p>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ LOCAL-FIRST LOOP ============ -->
+    <section id="loop" class="loop">
+      <div class="loop__inner">
+        <h2 class="section__title">The local-first loop.</h2>
+        <p class="section__lede">Four steps. All of them happen on your laptop.</p>
+        <ol class="loop__steps">
+          <li class="step">
+            <span class="step__num">1</span>
+            <span class="step__label">Write Python</span>
+            <span class="step__sub">In a real editor, in the page.</span>
+          </li>
+          <li class="step__arrow" aria-hidden="true">→</li>
+          <li class="step">
+            <span class="step__num">2</span>
+            <span class="step__label">Run locally</span>
+            <span class="step__sub">Sandboxed subprocess. Real stdout, real stderr.</span>
+          </li>
+          <li class="step__arrow" aria-hidden="true">→</li>
+          <li class="step">
+            <span class="step__num">3</span>
+            <span class="step__label">Get feedback</span>
+            <span class="step__sub">Tutor sees your output, gives a verdict + a next step.</span>
+          </li>
+          <li class="step__arrow" aria-hidden="true">→</li>
+          <li class="step">
+            <span class="step__num">4</span>
+            <span class="step__label">Offline practice</span>
+            <span class="step__sub">Plane, café, air-gapped lab — same loop.</span>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ SCREENS ============ -->
+    <section id="screens" class="screens">
+      <div class="screens__inner">
+        <h2 class="section__title">See it.</h2>
+        <p class="section__lede">A 30-second tour of the UI, lab, and tutor.</p>
+        <div class="screens__grid">
+          <figure class="shot">
+            <img loading="lazy" src="./assets/screenshots/01-home.png" alt="Landing page with two learning paths." />
+            <figcaption><strong>Land.</strong> Beginner or quick reference. Tutor is one tap away.</figcaption>
+          </figure>
+          <figure class="shot">
+            <img loading="lazy" src="./assets/screenshots/03-section-view.png" alt="Variables & Types lesson in Teaching mode." />
+            <figcaption><strong>Read.</strong> The <i>why</i> first, then the syntax.</figcaption>
+          </figure>
+          <figure class="shot">
+            <img loading="lazy" src="./assets/screenshots/04-code-lab-run.png" alt="Inline code lab with a Python program and a 'Ran cleanly' output." />
+            <figcaption><strong>Run.</strong> Real stdout/stderr. Not faked.</figcaption>
+          </figure>
+          <figure class="shot">
+            <img loading="lazy" src="./assets/screenshots/05-evaluate-feedback.png" alt="Tutor evaluation with verdict, next step, and Python docs references." />
+            <figcaption><strong>Evaluate.</strong> Verdict, next step, official docs.</figcaption>
+          </figure>
+          <figure class="shot">
+            <img loading="lazy" src="./assets/screenshots/06-tutor-chat.png" alt="Floating chat panel mid-conversation about Python variables." />
+            <figcaption><strong>Ask.</strong> Free-form questions, with your code in scope.</figcaption>
+          </figure>
+          <figure class="shot">
+            <img loading="lazy" src="./assets/screenshots/02-lesson-browser.png" alt="Lesson browser with 46 sections, filterable." />
+            <figcaption><strong>Browse.</strong> 46 sections. In order or by topic.</figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ TWO-COMMAND START ============ -->
+    <section id="start" class="start">
+      <div class="start__inner">
+        <h2 class="section__title">Two commands.</h2>
+        <p class="section__lede">macOS or Linux. Python 3.10+.</p>
+        <div class="start__code">
+          <pre><code><span class="t-com"># 1 — clone</span>
+gh repo clone StewAlexander-com/python-tutor
+<span class="t-kw">cd</span> python-tutor
+
+<span class="t-com"># 2 — set up &amp; serve (any host step is opt-in y/N)</span>
+./install.sh
+./run.sh             <span class="t-com"># → http://localhost:8001/</span></code></pre>
+        </div>
+        <p class="start__note">
+          <code>install.sh</code> only touches the repo on its own. Installing
+          Ollama, starting the daemon, pulling the model, or launching the app
+          are <strong>opt-in y/N prompts</strong> — press Enter and nothing
+          changes on your host.
+        </p>
+        <div class="start__cta">
+          <a class="btn btn--primary" href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">Open the repo</a>
+          <a class="btn btn--ghost" href="https://github.com/StewAlexander-com/python-tutor#quick-start" rel="noopener">Full quick start →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <div class="foot__inner">
+      <div class="foot__brand">
+        <svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true">
+          <rect x="6" y="6" width="52" height="52" rx="12" fill="#1a1a1b"/>
+          <path d="M18 22 L26 32 L18 42" fill="none" stroke="#e8a13b" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <rect x="31" y="39" width="14" height="3.5" rx="1" fill="#e8a13b"/>
+        </svg>
+        <span>Python Tutor</span>
+      </div>
+      <nav class="foot__nav" aria-label="Footer">
+        <a href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">GitHub</a>
+        <a href="https://github.com/StewAlexander-com/python-tutor#a-word-on-safety" rel="noopener">Safety</a>
+        <a href="https://github.com/StewAlexander-com/python-tutor/blob/main/docs/architecture.md" rel="noopener">Architecture</a>
+        <a href="https://github.com/StewAlexander-com/python-tutor/blob/main/curriculum/python-foundations.md" rel="noopener">Curriculum</a>
+      </nav>
+      <p class="foot__note">MIT-licensed. Frontend adapted from <a href="https://github.com/StewAlexander-com/Python-Power-User" rel="noopener">Python Power User</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>
