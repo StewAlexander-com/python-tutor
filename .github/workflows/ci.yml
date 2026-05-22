@@ -217,22 +217,25 @@ jobs:
           TUTOR_SKIP_OLLAMA: "1"
         run: |
           $ErrorActionPreference = 'Stop'
-          $outLog = Join-Path $env:RUNNER_TEMP 'run-ps1-smoke.out.log'
-          $errLog = Join-Path $env:RUNNER_TEMP 'run-ps1-smoke.err.log'
+          # Launch uvicorn directly from the just-built venv. This is what
+          # run.ps1 ends up doing; bypassing the wrapper here keeps the smoke
+          # focused on the server actually serving, and avoids Start-Process
+          # quirks around -File / argument forwarding in nested pwsh.
+          $uv = Join-Path (Get-Location) 'backend\.venv\Scripts\uvicorn.exe'
+          if (-not (Test-Path $uv)) { throw "missing $uv" }
+          $env:TUTOR_SERVE_FRONTEND = '1'
+          $outLog = Join-Path $env:RUNNER_TEMP 'uvicorn-smoke.out.log'
+          $errLog = Join-Path $env:RUNNER_TEMP 'uvicorn-smoke.err.log'
           New-Item -ItemType File -Force -Path $outLog | Out-Null
           New-Item -ItemType File -Force -Path $errLog | Out-Null
-          # Launch run.ps1 in a detached pwsh so the parent job can poll
-          # /api/health without waiting on Start-Job module init.
-          $procArgs = @(
-            '-NoProfile','-NoLogo','-File','run.ps1',
-            '-SkipOllama','-Port','8802'
-          )
-          $proc = Start-Process -FilePath 'pwsh' -ArgumentList $procArgs `
+          $proc = Start-Process -FilePath $uv `
+            -ArgumentList @('app.main:app','--host','127.0.0.1','--port','8802') `
+            -WorkingDirectory (Join-Path (Get-Location) 'backend') `
             -RedirectStandardOutput $outLog -RedirectStandardError $errLog `
-            -PassThru -WorkingDirectory (Get-Location).Path
+            -PassThru
           try {
             $ok = $false
-            for ($i = 0; $i -lt 120; $i++) {
+            for ($i = 0; $i -lt 60; $i++) {
               Start-Sleep -Seconds 1
               try {
                 $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8802/api/health' `
@@ -242,11 +245,11 @@ jobs:
               if ($proc.HasExited) { break }
             }
             if (-not $ok) {
-              Write-Host '--- run.ps1 stdout ---'
+              Write-Host '--- uvicorn stdout ---'
               if (Test-Path $outLog) { Get-Content -LiteralPath $outLog }
-              Write-Host '--- run.ps1 stderr ---'
+              Write-Host '--- uvicorn stderr ---'
               if (Test-Path $errLog) { Get-Content -LiteralPath $errLog }
-              throw "/api/health did not return 200 within 120s (proc exited=$($proc.HasExited))"
+              throw "/api/health did not return 200 within 60s (proc exited=$($proc.HasExited))"
             }
             Write-Host 'ok  /api/health -> 200'
           } finally {
