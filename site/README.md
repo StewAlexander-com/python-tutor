@@ -1,8 +1,13 @@
-# Hero website
+# Hero website / start page
 
 A small static landing page for Python Tutor. It mirrors the app's
 dark / amber aesthetic and explains the local-first loop without
 needing to launch the backend.
+
+**Published at:** <https://stewalexander-com.github.io/python-tutor/>
+
+Deployed automatically by [`.github/workflows/pages.yml`](../.github/workflows/pages.yml)
+on every push to `main` that touches `site/`.
 
 ## Files
 

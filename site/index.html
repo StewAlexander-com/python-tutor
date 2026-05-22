@@ -4,10 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>Python Tutor — Private Python practice with a local AI tutor</title>
-  <meta name="description" content="A private, offline Python tutor that runs entirely on your own machine. Lessons, an interactive code lab, and a local AI mentor — no accounts, no cloud, no telemetry." />
+  <meta name="description" content="A private, offline Python tutor that runs entirely on your own machine. Lessons, an interactive code lab, and a local AI mentor — no accounts, no cloud, no telemetry. Clone the repo and run two commands to start." />
   <meta name="theme-color" content="#0c0c0d" />
   <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
-  <link rel="canonical" href="https://github.com/StewAlexander-com/python-tutor" />
+  <link rel="canonical" href="https://stewalexander-com.github.io/python-tutor/" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
@@ -16,7 +16,7 @@
   <meta property="og:image" content="./assets/og-image.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="https://github.com/StewAlexander-com/python-tutor" />
+  <meta property="og:url" content="https://stewalexander-com.github.io/python-tutor/" />
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
@@ -43,7 +43,7 @@
       <a class="topbar__link" href="#why">Why</a>
       <a class="topbar__link" href="#loop">How it works</a>
       <a class="topbar__link" href="#screens">See it</a>
-      <a class="topbar__link" href="#start">Start</a>
+      <a class="topbar__link" href="#start">Install</a>
     </nav>
     <a class="btn btn--ghost topbar__cta" href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">
       <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.68 1.25 3.34.96.1-.74.4-1.25.72-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.18-3.1-.12-.29-.51-1.45.11-3.03 0 0 .97-.31 3.18 1.18a11.04 11.04 0 0 1 5.8 0c2.21-1.49 3.18-1.18 3.18-1.18.62 1.58.23 2.74.11 3.03.73.81 1.18 1.84 1.18 3.1 0 4.42-2.7 5.39-5.27 5.68.41.36.78 1.05.78 2.12v3.14c0 .31.21.68.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
@@ -71,8 +71,8 @@
             <strong>never leave your laptop</strong>.
           </p>
           <div class="hero__cta">
-            <a class="btn btn--primary" href="https://github.com/StewAlexander-com/python-tutor#quick-start" rel="noopener">
-              <span>Get started</span>
+            <a class="btn btn--primary" href="#start">
+              <span>Install in 3 commands</span>
               <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
             </a>
             <a class="btn btn--ghost" href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">View on GitHub</a>
@@ -243,29 +243,86 @@
       </div>
     </section>
 
-    <!-- ============ TWO-COMMAND START ============ -->
+    <!-- ============ START (clone + install + run) ============ -->
     <section id="start" class="start">
       <div class="start__inner">
-        <h2 class="section__title">Two commands.</h2>
-        <p class="section__lede">macOS or Linux. Python 3.10+.</p>
-        <div class="start__code">
-          <pre><code><span class="t-com"># 1 — clone</span>
-gh repo clone StewAlexander-com/python-tutor
-<span class="t-kw">cd</span> python-tutor
-
-<span class="t-com"># 2 — set up &amp; serve (any host step is opt-in y/N)</span>
-./install.sh
-./run.sh             <span class="t-com"># → http://localhost:8001/</span></code></pre>
-        </div>
-        <p class="start__note">
-          <code>install.sh</code> only touches the repo on its own. Installing
-          Ollama, starting the daemon, pulling the model, or launching the app
-          are <strong>opt-in y/N prompts</strong> — press Enter and nothing
-          changes on your host.
+        <h2 class="section__title">Clone, install, run.</h2>
+        <p class="section__lede">
+          This page is the start page for the repo &amp; software. Three short
+          commands and you're at <code>http://localhost:8001/</code>.
+          macOS or Linux. Python 3.10+.
         </p>
-        <div class="start__cta">
+
+        <ol class="start__steps">
+          <li class="start__step">
+            <div class="start__step-head">
+              <span class="start__step-num">1</span>
+              <h3 class="start__step-title">Clone the repo</h3>
+            </div>
+            <p class="start__step-sub">HTTPS works without a GitHub login. <code>gh repo clone</code> works too if you use the GitHub CLI.</p>
+            <div class="start__code start__code--with-copy">
+              <pre><code id="cmd-clone">git clone https://github.com/StewAlexander-com/python-tutor.git
+cd python-tutor</code></pre>
+              <button class="copy-btn" type="button" data-copy-target="cmd-clone" aria-label="Copy clone commands">Copy</button>
+            </div>
+          </li>
+
+          <li class="start__step">
+            <div class="start__step-head">
+              <span class="start__step-num">2</span>
+              <h3 class="start__step-title">Install</h3>
+            </div>
+            <p class="start__step-sub">
+              Sets up a Python venv and dependencies. Any host-level step
+              (Ollama install, daemon start, model pull, app launch) is an
+              <strong>opt-in y/N prompt</strong> — press Enter and nothing
+              changes on your host.
+            </p>
+            <div class="start__code start__code--with-copy">
+              <pre><code id="cmd-install">./install.sh</code></pre>
+              <button class="copy-btn" type="button" data-copy-target="cmd-install" aria-label="Copy install command">Copy</button>
+            </div>
+          </li>
+
+          <li class="start__step">
+            <div class="start__step-head">
+              <span class="start__step-num">3</span>
+              <h3 class="start__step-title">Run &amp; open in your browser</h3>
+            </div>
+            <p class="start__step-sub"><code>--open-browser</code> pops the tab once <code>/api/health</code> is green.</p>
+            <div class="start__code start__code--with-copy">
+              <pre><code id="cmd-run">./run.sh --open-browser</code></pre>
+              <button class="copy-btn" type="button" data-copy-target="cmd-run" aria-label="Copy run command">Copy</button>
+            </div>
+            <p class="start__step-sub start__step-sub--muted">
+              Or just <code>./run.sh</code> and open <code>http://localhost:8001/</code> yourself.
+            </p>
+          </li>
+        </ol>
+
+        <details class="start__more">
+          <summary>Common variations</summary>
+          <div class="start__code start__code--with-copy">
+            <pre><code id="cmd-more"><span class="t-com"># trusted host: install Ollama, pull model, launch — no prompts</span>
+./install.sh --yes
+
+<span class="t-com"># CI / air-gapped: never prompt, default everything to "no"</span>
+./install.sh --noninteractive
+
+<span class="t-com"># Python-only setup (skip every Ollama probe)</span>
+./install.sh --skip-ollama
+
+<span class="t-com"># pick a different model or port</span>
+./install.sh --model llama3.1:8b
+./run.sh --port 8042</code></pre>
+            <button class="copy-btn" type="button" data-copy-target="cmd-more" aria-label="Copy variation commands">Copy</button>
+          </div>
+        </details>
+
+        <div class="start__links">
           <a class="btn btn--primary" href="https://github.com/StewAlexander-com/python-tutor" rel="noopener">Open the repo</a>
-          <a class="btn btn--ghost" href="https://github.com/StewAlexander-com/python-tutor#quick-start" rel="noopener">Full quick start →</a>
+          <a class="btn btn--ghost" href="https://github.com/StewAlexander-com/python-tutor#readme" rel="noopener">Read the README</a>
+          <a class="btn btn--ghost" href="https://github.com/StewAlexander-com/python-tutor/issues" rel="noopener">File an issue</a>
         </div>
       </div>
     </section>
@@ -290,5 +347,46 @@ gh repo clone StewAlexander-com/python-tutor
       <p class="foot__note">MIT-licensed. Frontend adapted from <a href="https://github.com/StewAlexander-com/Python-Power-User" rel="noopener">Python Power User</a>.</p>
     </div>
   </footer>
+
+  <script>
+    (function () {
+      var buttons = document.querySelectorAll('.copy-btn[data-copy-target]');
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var id = btn.getAttribute('data-copy-target');
+          var node = document.getElementById(id);
+          if (!node) return;
+          var text = node.innerText.replace(/ /g, ' ');
+          var done = function () {
+            var original = btn.textContent;
+            btn.textContent = 'Copied';
+            btn.classList.add('is-copied');
+            setTimeout(function () {
+              btn.textContent = original;
+              btn.classList.remove('is-copied');
+            }, 1400);
+          };
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, function () {
+              fallbackCopy(text); done();
+            });
+          } else {
+            fallbackCopy(text); done();
+          }
+        });
+      });
+      function fallbackCopy(text) {
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'absolute';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand('copy'); } catch (e) {}
+        document.body.removeChild(ta);
+      }
+    })();
+  </script>
 </body>
 </html>
