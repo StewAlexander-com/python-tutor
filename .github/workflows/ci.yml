@@ -217,31 +217,38 @@ jobs:
           TUTOR_SKIP_OLLAMA: "1"
         run: |
           $ErrorActionPreference = 'Stop'
-          $job = Start-Job -ScriptBlock {
-            param($root)
-            Set-Location $root
-            $env:TUTOR_SKIP_OLLAMA = '1'
-            & .\run.ps1 -SkipOllama -Port 8802
-          } -ArgumentList (Get-Location).Path
+          $log = Join-Path $env:RUNNER_TEMP 'run-ps1-smoke.log'
+          New-Item -ItemType File -Force -Path $log | Out-Null
+          # Launch run.ps1 in a detached pwsh so the parent job can poll
+          # /api/health without waiting on Start-Job module init.
+          $args = @(
+            '-NoProfile','-NoLogo','-File','run.ps1',
+            '-SkipOllama','-Port','8802'
+          )
+          $proc = Start-Process -FilePath 'pwsh' -ArgumentList $args `
+            -RedirectStandardOutput $log -RedirectStandardError $log `
+            -PassThru -WorkingDirectory (Get-Location).Path
           try {
             $ok = $false
-            for ($i = 0; $i -lt 60; $i++) {
+            for ($i = 0; $i -lt 120; $i++) {
               Start-Sleep -Seconds 1
               try {
                 $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8802/api/health' `
                   -UseBasicParsing -TimeoutSec 2 -ErrorAction Stop
                 if ($r.StatusCode -eq 200) { $ok = $true; break }
               } catch { }
+              if ($proc.HasExited) { break }
             }
             if (-not $ok) {
-              Write-Host '--- background job output ---'
-              Receive-Job $job
-              throw '/api/health did not return 200 within 60s'
+              Write-Host '--- run.ps1 output ---'
+              if (Test-Path $log) { Get-Content -LiteralPath $log }
+              throw "/api/health did not return 200 within 120s (proc exited=$($proc.HasExited))"
             }
             Write-Host 'ok  /api/health -> 200'
           } finally {
-            Stop-Job $job -ErrorAction SilentlyContinue
-            Remove-Job $job -Force -ErrorAction SilentlyContinue
+            if (-not $proc.HasExited) {
+              Stop-Process -Id $proc.Id -Force -ErrorAction SilentlyContinue
+            }
           }
 
       - name: Reject unknown parameter
