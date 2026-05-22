@@ -217,16 +217,18 @@ jobs:
           TUTOR_SKIP_OLLAMA: "1"
         run: |
           $ErrorActionPreference = 'Stop'
-          $log = Join-Path $env:RUNNER_TEMP 'run-ps1-smoke.log'
-          New-Item -ItemType File -Force -Path $log | Out-Null
+          $outLog = Join-Path $env:RUNNER_TEMP 'run-ps1-smoke.out.log'
+          $errLog = Join-Path $env:RUNNER_TEMP 'run-ps1-smoke.err.log'
+          New-Item -ItemType File -Force -Path $outLog | Out-Null
+          New-Item -ItemType File -Force -Path $errLog | Out-Null
           # Launch run.ps1 in a detached pwsh so the parent job can poll
           # /api/health without waiting on Start-Job module init.
-          $args = @(
+          $procArgs = @(
             '-NoProfile','-NoLogo','-File','run.ps1',
             '-SkipOllama','-Port','8802'
           )
-          $proc = Start-Process -FilePath 'pwsh' -ArgumentList $args `
-            -RedirectStandardOutput $log -RedirectStandardError $log `
+          $proc = Start-Process -FilePath 'pwsh' -ArgumentList $procArgs `
+            -RedirectStandardOutput $outLog -RedirectStandardError $errLog `
             -PassThru -WorkingDirectory (Get-Location).Path
           try {
             $ok = $false
@@ -240,8 +242,10 @@ jobs:
               if ($proc.HasExited) { break }
             }
             if (-not $ok) {
-              Write-Host '--- run.ps1 output ---'
-              if (Test-Path $log) { Get-Content -LiteralPath $log }
+              Write-Host '--- run.ps1 stdout ---'
+              if (Test-Path $outLog) { Get-Content -LiteralPath $outLog }
+              Write-Host '--- run.ps1 stderr ---'
+              if (Test-Path $errLog) { Get-Content -LiteralPath $errLog }
               throw "/api/health did not return 200 within 120s (proc exited=$($proc.HasExited))"
             }
             Write-Host 'ok  /api/health -> 200'

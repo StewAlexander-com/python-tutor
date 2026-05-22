@@ -430,10 +430,12 @@ function Install-OllamaNow {
 
 function Start-OllamaNow {
     Say "starting 'ollama serve' in the background"
-    $logPath = Join-Path ([IO.Path]::GetTempPath()) 'ollama-serve.log'
+    # Start-Process requires distinct files for stdout vs stderr.
+    $outLog = Join-Path ([IO.Path]::GetTempPath()) 'ollama-serve.out.log'
+    $errLog = Join-Path ([IO.Path]::GetTempPath()) 'ollama-serve.err.log'
     try {
         $p = Start-Process -FilePath 'ollama' -ArgumentList 'serve' `
-            -RedirectStandardOutput $logPath -RedirectStandardError $logPath `
+            -RedirectStandardOutput $outLog -RedirectStandardError $errLog `
             -WindowStyle Hidden -PassThru
     } catch {
         ErrMsg "failed to start 'ollama serve': $($_.Exception.Message)"
@@ -441,13 +443,13 @@ function Start-OllamaNow {
     }
     for ($i = 0; $i -lt 20; $i++) {
         if (Test-OllamaDaemon) {
-            Ok ("ollama serve is up (pid {0}; log: {1})" -f $p.Id, $logPath)
+            Ok ("ollama serve is up (pid {0}; logs: {1}, {2})" -f $p.Id, $outLog, $errLog)
             return $true
         }
         Start-Sleep -Milliseconds 500
     }
     ErrMsg 'ollama serve did not become reachable on :11434 within 10s.'
-    ErrMsg "Inspect $logPath or run 'ollama serve' in another terminal."
+    ErrMsg "Inspect $outLog / $errLog or run 'ollama serve' in another terminal."
     return $false
 }
 
