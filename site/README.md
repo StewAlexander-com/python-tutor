@@ -1,4 +1,4 @@
-# Hero website / start page
+# Project website / start page
 
 A small static landing page for Python Tutor. It mirrors the app's
 dark / amber aesthetic and explains the local-first loop without
