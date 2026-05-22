@@ -23,14 +23,109 @@ need() {
   grep -q -- "$1" "$HTML" || fail "site/index.html missing: $1"
 }
 need "<title>Python Tutor"
+need 'name="description"'
+need 'name="robots"'
+need 'name="theme-color"'
+need 'rel="canonical"'
 need 'property="og:title"'
+need 'property="og:description"'
+need 'property="og:type"'
+need 'property="og:url"'
+need 'property="og:site_name"'
 need 'property="og:image"'
+need 'property="og:image:secure_url"'
+need 'property="og:image:type"'
+need 'property="og:image:width"'
+need 'property="og:image:height"'
+need 'property="og:image:alt"'
 need 'name="twitter:card"'
+need 'name="twitter:title"'
+need 'name="twitter:description"'
+need 'name="twitter:image"'
+need 'name="twitter:image:alt"'
+need 'rel="apple-touch-icon"'
+need 'rel="manifest"'
 need 'id="why"'
 need 'id="loop"'
 need 'id="screens"'
 need 'id="start"'
 ok "required <head> and section anchors present"
+
+# Open Graph / Twitter image must be an absolute URL (most scrapers reject relative).
+grep -qE 'property="og:image"[^>]*content="https://' "$HTML" \
+  || fail "og:image must use an absolute https:// URL"
+grep -qE 'name="twitter:image"[^>]*content="https://' "$HTML" \
+  || fail "twitter:image must use an absolute https:// URL"
+ok "og:image and twitter:image use absolute URLs"
+
+# Social-share asset files must exist on disk at the right sizes.
+need_file() { [ -f "$1" ] || fail "missing asset: $1"; }
+need_file "$SITE/assets/og-image.png"
+need_file "$SITE/assets/og-image-square.png"
+need_file "$SITE/assets/favicon.svg"
+need_file "$SITE/assets/favicon.ico"
+need_file "$SITE/assets/favicon-16.png"
+need_file "$SITE/assets/favicon-32.png"
+need_file "$SITE/assets/apple-touch-icon.png"
+need_file "$SITE/assets/icon-192.png"
+need_file "$SITE/assets/icon-512.png"
+need_file "$SITE/site.webmanifest"
+ok "favicon, manifest, and social-share assets present"
+
+# Validate critical image dimensions where we can.
+python3 - "$SITE" <<'PY'
+import sys, struct, os
+site = sys.argv[1]
+def png_size(p):
+    with open(p, "rb") as f:
+        head = f.read(24)
+    if head[:8] != b"\x89PNG\r\n\x1a\n":
+        return None
+    w, h = struct.unpack(">II", head[16:24])
+    return w, h
+expected = {
+    "assets/og-image.png": (1200, 630),
+    "assets/og-image-square.png": (1200, 1200),
+    "assets/apple-touch-icon.png": (180, 180),
+    "assets/favicon-16.png": (16, 16),
+    "assets/favicon-32.png": (32, 32),
+    "assets/icon-192.png": (192, 192),
+    "assets/icon-512.png": (512, 512),
+}
+bad = []
+for rel, want in expected.items():
+    p = os.path.join(site, rel)
+    got = png_size(p)
+    if got != want:
+        bad.append(f"{rel}: got {got}, want {want}")
+if bad:
+    print("✗ wrong image dimensions:", file=sys.stderr)
+    for b in bad: print("    " + b, file=sys.stderr)
+    sys.exit(1)
+print("✓ all PNG asset dimensions correct")
+PY
+
+# webmanifest must reference real icon files and be valid JSON.
+python3 - "$SITE" <<'PY'
+import json, os, sys
+site = sys.argv[1]
+mf = os.path.join(site, "site.webmanifest")
+data = json.load(open(mf))
+icons = data.get("icons", [])
+if not icons:
+    print("✗ site.webmanifest has no icons", file=sys.stderr); sys.exit(1)
+missing = []
+for ic in icons:
+    src = ic.get("src", "")
+    rel = src[2:] if src.startswith("./") else src
+    if not os.path.exists(os.path.join(site, rel)):
+        missing.append(src)
+if missing:
+    print("✗ manifest icons missing on disk:", file=sys.stderr)
+    for m in missing: print("    " + m, file=sys.stderr)
+    sys.exit(1)
+print(f"✓ site.webmanifest valid JSON with {len(icons)} resolvable icons")
+PY
 
 # Start-page install content must be visible — this page is the entry point
 # to the repo, so the clone/install/run commands have to be there literally.
