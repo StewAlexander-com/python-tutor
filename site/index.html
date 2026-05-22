@@ -3,26 +3,63 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>Python Tutor — Private Python practice with a local AI tutor</title>
-  <meta name="description" content="A private, offline Python tutor that runs entirely on your own machine. Lessons, an interactive code lab, and a local AI mentor — no accounts, no cloud, no telemetry. Clone the repo and run two commands to start." />
+  <title>Python Tutor — Offline-first Python practice with a local AI tutor</title>
+  <meta name="description" content="Offline-first Python tutor with a local AI mentor. Two-command install, then fully offline with Ollama and Gemma. Source-backed docs when online. No accounts, no cloud, no telemetry." />
+  <meta name="keywords" content="Python tutor, offline Python, local AI tutor, learn Python, Ollama, Gemma, private LLM, local-first, open source" />
+  <meta name="author" content="Stew Alexander" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#0c0c0d" />
-  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <meta name="color-scheme" content="dark" />
   <link rel="canonical" href="https://stewalexander-com.github.io/python-tutor/" />
 
-  <!-- Open Graph -->
+  <!-- Favicons -->
+  <link rel="icon" type="image/svg+xml" href="./assets/favicon.svg" />
+  <link rel="icon" type="image/png" sizes="32x32" href="./assets/favicon-32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="./assets/favicon-16.png" />
+  <link rel="shortcut icon" href="./assets/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="./assets/apple-touch-icon.png" />
+  <link rel="mask-icon" href="./assets/favicon.svg" color="#e8a13b" />
+  <link rel="manifest" href="./site.webmanifest" />
+  <meta name="apple-mobile-web-app-title" content="Python Tutor" />
+  <meta name="application-name" content="Python Tutor" />
+
+  <!-- Open Graph / Facebook / LinkedIn / Messenger / iMessage -->
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="Python Tutor — Private Python practice with a local AI tutor" />
-  <meta property="og:description" content="Lessons, a real code lab, and an AI mentor — all on your laptop. No accounts. No cloud. No telemetry." />
-  <meta property="og:image" content="./assets/og-image.png" />
+  <meta property="og:site_name" content="Python Tutor" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Python Tutor — Offline-first Python practice with a local AI tutor" />
+  <meta property="og:description" content="Two-command install, then fully offline with Ollama and Gemma. Lessons, a real code lab, and an AI mentor — all on your laptop. No accounts. No cloud. No telemetry." />
+  <meta property="og:url" content="https://stewalexander-com.github.io/python-tutor/" />
+  <meta property="og:image" content="https://stewalexander-com.github.io/python-tutor/assets/og-image.png" />
+  <meta property="og:image:secure_url" content="https://stewalexander-com.github.io/python-tutor/assets/og-image.png" />
+  <meta property="og:image:type" content="image/png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
-  <meta property="og:url" content="https://stewalexander-com.github.io/python-tutor/" />
+  <meta property="og:image:alt" content="Python Tutor — Private Python practice with a local AI tutor. Two commands: ./install.sh and ./run.sh --open-browser." />
 
   <!-- Twitter / X -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Python Tutor — Private Python practice with a local AI tutor" />
-  <meta name="twitter:description" content="Lessons, a real code lab, and an AI mentor — all on your laptop. No accounts. No cloud. No telemetry." />
-  <meta name="twitter:image" content="./assets/og-image.png" />
+  <meta name="twitter:title" content="Python Tutor — Offline-first Python practice with a local AI tutor" />
+  <meta name="twitter:description" content="Two-command install, then fully offline with Ollama and Gemma. Lessons, a real code lab, and an AI mentor — all on your laptop. No accounts. No cloud. No telemetry." />
+  <meta name="twitter:image" content="https://stewalexander-com.github.io/python-tutor/assets/og-image.png" />
+  <meta name="twitter:image:alt" content="Python Tutor — Private Python practice with a local AI tutor. Two commands: ./install.sh and ./run.sh --open-browser." />
+
+  <!-- JSON-LD structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Python Tutor",
+    "description": "Offline-first Python tutor with a local AI mentor. Two-command install, then fully offline with Ollama and Gemma. Source-backed docs when online.",
+    "url": "https://stewalexander-com.github.io/python-tutor/",
+    "image": "https://stewalexander-com.github.io/python-tutor/assets/og-image.png",
+    "applicationCategory": "EducationalApplication",
+    "operatingSystem": "macOS, Linux",
+    "license": "https://opensource.org/licenses/MIT",
+    "codeRepository": "https://github.com/StewAlexander-com/python-tutor",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+  }
+  </script>
 
   <link rel="stylesheet" href="./style.css" />
 </head>
